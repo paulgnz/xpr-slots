@@ -742,6 +742,200 @@
             0%, 100% { opacity: 0; transform: scale(0); }
             50% { opacity: 1; transform: scale(1); }
         }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            #app {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+                letter-spacing: 4px;
+            }
+
+            .subtitle {
+                font-size: 0.9rem;
+                letter-spacing: 1px;
+            }
+
+            .slot-machine {
+                padding: 15px;
+                border-radius: 20px;
+            }
+
+            .reels-container {
+                gap: 8px;
+                padding: 12px;
+            }
+
+            .reel-wrapper {
+                width: 80px;
+                height: 200px;
+            }
+
+            .symbol {
+                width: 80px;
+                height: 65px;
+                font-size: 40px;
+            }
+
+            .reel-wrapper::before,
+            .reel-wrapper::after {
+                height: 50px;
+            }
+
+            .game-info {
+                gap: 10px;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .info-box {
+                padding: 12px 20px;
+                min-width: 150px;
+                width: 100%;
+                max-width: 280px;
+            }
+
+            .info-box h3 {
+                font-size: 0.65rem;
+            }
+
+            .info-box .value {
+                font-size: 1.1rem;
+            }
+
+            .bet-selector {
+                gap: 5px;
+            }
+
+            .bet-btn {
+                padding: 6px 10px;
+                font-size: 0.7rem;
+                min-width: 50px;
+            }
+
+            .controls {
+                gap: 10px;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            button {
+                padding: 14px 30px;
+                font-size: 0.85rem;
+            }
+
+            #spin-btn {
+                padding: 16px 50px;
+                font-size: 1rem;
+            }
+
+            .result-display {
+                padding: 15px 20px;
+                font-size: 1rem;
+                min-height: 60px;
+            }
+
+            .payout-section,
+            .stats-section,
+            .recent-spins {
+                margin-top: 25px;
+                max-width: 100%;
+            }
+
+            .payout-section h2,
+            .stats-section h2,
+            .recent-spins h2 {
+                font-size: 1rem;
+            }
+
+            .payout-row {
+                padding: 12px 15px;
+            }
+
+            .payout-row .combination {
+                font-size: 1.2rem;
+                letter-spacing: 4px;
+            }
+
+            .payout-row .payout {
+                font-size: 0.8rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .stat-item {
+                padding: 10px 12px;
+                font-size: 0.8rem;
+                flex-direction: column;
+                text-align: center;
+                gap: 5px;
+            }
+
+            .spin-item {
+                padding: 10px 15px;
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+            }
+
+            .spin-item .symbols {
+                font-size: 1.3rem;
+                letter-spacing: 6px;
+            }
+
+            .disclaimer {
+                padding: 20px;
+                font-size: 0.75rem;
+                margin-top: 30px;
+            }
+
+            .disclaimer h3 {
+                font-size: 0.85rem;
+            }
+
+            footer {
+                font-size: 0.8rem;
+                padding: 15px;
+            }
+
+            footer code {
+                font-size: 0.7rem;
+            }
+        }
+
+        /* Extra small devices */
+        @media (max-width: 380px) {
+            h1 {
+                font-size: 1.6rem;
+                letter-spacing: 2px;
+            }
+
+            .reel-wrapper {
+                width: 70px;
+                height: 180px;
+            }
+
+            .symbol {
+                width: 70px;
+                height: 58px;
+                font-size: 32px;
+            }
+
+            .reels-container {
+                gap: 5px;
+                padding: 10px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -822,7 +1016,7 @@
             <div class="payout-table">
                 <div class="payout-row jackpot">
                     <span class="combination">7️⃣ 7️⃣ 7️⃣</span>
-                    <span class="payout">JACKPOT! (min 100k XPR)</span>
+                    <span class="payout">JACKPOT! (min 10k XPR)</span>
                 </div>
                 <div class="payout-row">
                     <span class="combination">🍒 🍒 🍒</span>
@@ -892,7 +1086,7 @@
 
         <footer>
             <p>Built on <a href="https://xprnetwork.org" target="_blank">XPR Network</a></p>
-            <p>Contract: <code id="contract-address">xprslots1111</code></p>
+            <p>Contract: <code id="contract-address">xprslots</code></p>
         </footer>
     </div>
 
