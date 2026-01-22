@@ -146,57 +146,272 @@ function playAmbientMusic() {
 
 function playCasinoMusic() {
   const ctx = getAudioContext();
+
+  // Master chain with compression for that polished sound
   const masterGain = ctx.createGain();
-  masterGain.gain.value = 0.12;
-  masterGain.connect(ctx.destination);
+  const compressor = ctx.createDynamicsCompressor();
+  masterGain.gain.value = 0.25;
+  compressor.threshold.value = -20;
+  compressor.knee.value = 10;
+  compressor.ratio.value = 4;
+  masterGain.connect(compressor);
+  compressor.connect(ctx.destination);
 
-  // Upbeat jazzy pattern
-  const notes = [392, 440, 494, 523, 587, 659, 698, 784];
-  let beatIndex = 0;
+  // Tempo: 125 BPM (480ms per beat) - upbeat casino groove
+  const BPM = 125;
+  const beatMs = 60000 / BPM;
+  const sixteenth = beatMs / 4;
 
-  function playBeat() {
-    const time = ctx.currentTime;
+  // Musical constants (A minor / C major - classic game music keys)
+  const NOTE = {
+    A2: 110, B2: 123.47, C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196,
+    A3: 220, B3: 246.94, C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392,
+    A4: 440, B4: 493.88, C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 784
+  };
 
-    // Bass note
-    const bass = ctx.createOscillator();
-    const bassGain = ctx.createGain();
-    bass.type = 'triangle';
-    bass.frequency.value = notes[beatIndex % 4] / 4;
-    bass.connect(bassGain);
-    bassGain.connect(masterGain);
-    bassGain.gain.setValueAtTime(0.4, time);
-    bassGain.gain.exponentialRampToValueAtTime(0.01, time + 0.3);
-    bass.start(time);
-    bass.stop(time + 0.3);
-    musicNodes.push(bass);
+  // Funky walking bassline (inspired by Pokemon Game Corner)
+  const bassPattern = [
+    { note: NOTE.A2, time: 0 },
+    { note: NOTE.C3, time: 1 },
+    { note: NOTE.E3, time: 2 },
+    { note: NOTE.G3, time: 2.5 },
+    { note: NOTE.A3, time: 3 },
+    { note: NOTE.G3, time: 4 },
+    { note: NOTE.F3, time: 5 },
+    { note: NOTE.E3, time: 6 },
+    { note: NOTE.D3, time: 6.5 },
+    { note: NOTE.E3, time: 7 }
+  ];
 
-    // Melody note (syncopated)
-    setTimeout(() => {
-      if (currentTrack !== 'casino') return;
-      const mel = ctx.createOscillator();
-      const melGain = ctx.createGain();
-      mel.type = 'square';
-      mel.frequency.value = notes[(beatIndex + 2) % notes.length];
+  // Jazzy chord stabs (7th chords for that casino lounge vibe)
+  const chordPattern = [
+    { notes: [NOTE.A3, NOTE.C4, NOTE.E4, NOTE.G4], time: 0, dur: 0.3 },      // Am7
+    { notes: [NOTE.A3, NOTE.C4, NOTE.E4, NOTE.G4], time: 0.75, dur: 0.15 },  // Am7 stab
+    { notes: [NOTE.D4, NOTE.F4, NOTE.A4, NOTE.C5], time: 2, dur: 0.3 },      // Dm7
+    { notes: [NOTE.G3, NOTE.B3, NOTE.D4, NOTE.F4], time: 4, dur: 0.3 },      // G7
+    { notes: [NOTE.C4, NOTE.E4, NOTE.G4, NOTE.B4], time: 5.5, dur: 0.15 },   // Cmaj7 stab
+    { notes: [NOTE.E4, NOTE.G4, NOTE.B4, NOTE.D5], time: 6, dur: 0.3 }       // Em7
+  ];
 
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.value = 1500;
+  // Catchy lead melody (Sonic Casino Night Zone inspired hook)
+  const melodyPattern = [
+    { note: NOTE.E5, time: 0, dur: 0.5 },
+    { note: NOTE.D5, time: 0.5, dur: 0.25 },
+    { note: NOTE.C5, time: 0.75, dur: 0.25 },
+    { note: NOTE.B4, time: 1, dur: 0.5 },
+    { note: NOTE.A4, time: 1.5, dur: 0.25 },
+    { note: NOTE.G4, time: 2, dur: 0.75 },
+    { note: NOTE.A4, time: 3, dur: 0.25 },
+    { note: NOTE.B4, time: 3.25, dur: 0.25 },
+    { note: NOTE.C5, time: 3.5, dur: 0.5 },
+    { note: NOTE.E5, time: 4, dur: 0.5 },
+    { note: NOTE.D5, time: 4.5, dur: 0.25 },
+    { note: NOTE.E5, time: 4.75, dur: 0.25 },
+    { note: NOTE.G5, time: 5, dur: 0.75 },
+    { note: NOTE.E5, time: 6, dur: 0.25 },
+    { note: NOTE.D5, time: 6.5, dur: 0.25 },
+    { note: NOTE.C5, time: 7, dur: 0.5 },
+    { note: NOTE.B4, time: 7.5, dur: 0.5 }
+  ];
 
-      mel.connect(filter);
-      filter.connect(melGain);
-      melGain.connect(masterGain);
-      melGain.gain.setValueAtTime(0.15, ctx.currentTime);
-      melGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
-      mel.start(ctx.currentTime);
-      mel.stop(ctx.currentTime + 0.15);
-      musicNodes.push(mel);
-    }, 150);
+  // Arpeggio sparkle pattern (slot machine vibes)
+  const arpeggioPattern = [
+    { note: NOTE.C5, time: 1.5 }, { note: NOTE.E5, time: 1.625 }, { note: NOTE.G5, time: 1.75 },
+    { note: NOTE.A4, time: 3.5 }, { note: NOTE.C5, time: 3.625 }, { note: NOTE.E5, time: 3.75 },
+    { note: NOTE.G4, time: 5.5 }, { note: NOTE.B4, time: 5.625 }, { note: NOTE.D5, time: 5.75 },
+    { note: NOTE.E4, time: 7.5 }, { note: NOTE.G4, time: 7.625 }, { note: NOTE.B4, time: 7.75 }
+  ];
 
-    beatIndex++;
+  // Create synth bass sound
+  function playBass(freq, startTime, duration = 0.4) {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc1.type = 'sawtooth';
+    osc2.type = 'square';
+    osc1.frequency.value = freq;
+    osc2.frequency.value = freq * 0.998; // slight detune for thickness
+
+    filter.type = 'lowpass';
+    filter.frequency.value = 400;
+    filter.Q.value = 2;
+
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
+    gain.connect(masterGain);
+
+    gain.gain.setValueAtTime(0.35, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.15, startTime + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+
+    osc1.start(startTime);
+    osc2.start(startTime);
+    osc1.stop(startTime + duration);
+    osc2.stop(startTime + duration);
+    musicNodes.push(osc1, osc2);
   }
 
-  playBeat();
-  musicInterval = setInterval(playBeat, 400);
+  // Create electric piano / Rhodes-like chord sound
+  function playChord(freqs, startTime, duration = 0.3) {
+    freqs.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      // FM synthesis for bell-like quality
+      const modulator = ctx.createOscillator();
+      const modGain = ctx.createGain();
+      modulator.frequency.value = freq * 2;
+      modGain.gain.value = freq * 0.5;
+      modulator.connect(modGain);
+      modGain.connect(osc.frequency);
+
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(2000, startTime);
+      filter.frequency.exponentialRampToValueAtTime(500, startTime + duration);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+
+      const vol = 0.08 - (i * 0.015); // higher notes slightly quieter
+      gain.gain.setValueAtTime(vol, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+      modulator.start(startTime);
+      osc.start(startTime);
+      modulator.stop(startTime + duration);
+      osc.stop(startTime + duration);
+      musicNodes.push(osc, modulator);
+    });
+  }
+
+  // Create lead synth (square wave with filter sweep - very video game)
+  function playLead(freq, startTime, duration = 0.2) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc.type = 'square';
+    osc.frequency.value = freq;
+
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(3000, startTime);
+    filter.frequency.exponentialRampToValueAtTime(800, startTime + duration * 0.8);
+    filter.Q.value = 5;
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(masterGain);
+
+    gain.gain.setValueAtTime(0.12, startTime);
+    gain.gain.setValueAtTime(0.1, startTime + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+    osc.start(startTime);
+    osc.stop(startTime + duration);
+    musicNodes.push(osc);
+  }
+
+  // Create sparkly arpeggio sound
+  function playArpeggio(freq, startTime) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+
+    gain.gain.setValueAtTime(0.08, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.15);
+
+    osc.start(startTime);
+    osc.stop(startTime + 0.15);
+    musicNodes.push(osc);
+  }
+
+  // Hi-hat rhythm for groove
+  function playHiHat(startTime, accent = false) {
+    const bufferSize = ctx.sampleRate * 0.05;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 3);
+    }
+
+    const noise = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    noise.buffer = buffer;
+    filter.type = 'highpass';
+    filter.frequency.value = 7000;
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(masterGain);
+
+    gain.gain.value = accent ? 0.06 : 0.03;
+
+    noise.start(startTime);
+    musicNodes.push(noise);
+  }
+
+  // 8-beat loop duration
+  const loopDuration = beatMs * 8;
+  let loopCount = 0;
+
+  function playLoop() {
+    if (currentTrack !== 'casino') return;
+
+    const now = ctx.currentTime;
+
+    // Play bass pattern
+    bassPattern.forEach(b => {
+      playBass(b.note, now + (b.time * beatMs / 1000));
+    });
+
+    // Play chord stabs
+    chordPattern.forEach(c => {
+      playChord(c.notes, now + (c.time * beatMs / 1000), c.dur * (beatMs / 1000) * 2);
+    });
+
+    // Play melody (alternate patterns for variation)
+    if (loopCount % 2 === 0) {
+      melodyPattern.forEach(m => {
+        playLead(m.note, now + (m.time * beatMs / 1000), m.dur * (beatMs / 1000));
+      });
+    } else {
+      // Variation: melody an octave lower, slightly different
+      melodyPattern.slice(0, 8).forEach(m => {
+        playLead(m.note / 2, now + (m.time * beatMs / 1000), m.dur * (beatMs / 1000));
+      });
+    }
+
+    // Play arpeggios
+    arpeggioPattern.forEach(a => {
+      playArpeggio(a.note, now + (a.time * beatMs / 1000));
+    });
+
+    // Hi-hat pattern (16th notes with accents on 1 and 3)
+    for (let i = 0; i < 32; i++) {
+      const accent = (i % 8 === 0) || (i % 8 === 4);
+      playHiHat(now + (i * sixteenth / 1000), accent);
+    }
+
+    loopCount++;
+  }
+
+  playLoop();
+  musicInterval = setInterval(playLoop, loopDuration);
 }
 
 function setMusic(track) {
