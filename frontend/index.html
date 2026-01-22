@@ -359,6 +359,17 @@
             margin-bottom: 20px;
         }
 
+        /* Desktop spin button container */
+        .spin-container {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+
+        .desktop-only {
+            display: flex;
+        }
+
         .wallet-container {
             position: relative;
         }
@@ -991,8 +1002,8 @@
                 display: block;
             }
 
-            /* Hide desktop spin button, show sound/wallet only */
-            .controls #spin-btn {
+            /* Hide desktop spin button container on mobile */
+            .desktop-only {
                 display: none;
             }
 
@@ -1211,6 +1222,10 @@
                 <button id="spin-btn-mobile" class="spin-btn-mobile" disabled>SPIN</button>
             </div>
 
+            <div class="spin-container desktop-only">
+                <button id="spin-btn" disabled>SPIN</button>
+            </div>
+
             <div class="info-box bet-box">
                 <h3>Select Bet</h3>
                 <div class="bet-selector" id="bet-selector"></div>
@@ -1225,7 +1240,6 @@
                         <button id="logout-btn">Logout</button>
                     </div>
                 </div>
-                <button id="spin-btn" disabled>SPIN</button>
             </div>
         </div>
 
