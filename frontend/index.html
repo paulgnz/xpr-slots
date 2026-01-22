@@ -949,45 +949,41 @@
 
             .game-info {
                 gap: 10px;
-                flex-direction: row;
-                flex-wrap: wrap;
+                flex-direction: column;
                 align-items: center;
-                justify-content: center;
             }
 
-            /* On mobile: jackpot and balance side by side at top */
+            /* On mobile: each element on its own line */
             .game-info .info-box.jackpot {
                 order: 1;
-                flex: 1;
-                min-width: 0;
-                max-width: 160px;
-                padding: 10px 12px;
+                width: 100%;
+                max-width: 280px;
+                padding: 12px 20px;
             }
 
             .game-info .info-box.balance-box {
                 order: 2;
-                flex: 1;
-                min-width: 0;
-                max-width: 160px;
-                padding: 10px 12px;
+                width: 100%;
+                max-width: 280px;
+                padding: 12px 20px;
             }
 
             .game-info .info-box .value {
-                font-size: 1rem;
+                font-size: 1.1rem;
             }
 
-            /* Spin button below jackpot/balance row */
+            /* Spin button on its own line */
             .game-info .spin-btn-mobile {
                 order: 3;
                 width: 100%;
                 max-width: 280px;
             }
 
-            /* Result display at bottom */
+            /* Result display on its own line */
             .game-info .result-display {
                 order: 4;
                 width: 100%;
-                max-width: 100%;
+                max-width: 280px;
                 min-width: unset;
             }
 
