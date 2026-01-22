@@ -238,10 +238,17 @@
         /* Stats Display */
         .game-info {
             display: flex;
-            gap: 20px;
+            flex-direction: column;
+            gap: 15px;
             margin-bottom: 25px;
-            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .info-row {
+            display: flex;
+            gap: 15px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .info-box {
@@ -908,6 +915,24 @@
                 align-items: center;
             }
 
+            .info-row {
+                display: flex;
+                gap: 10px;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .info-row .info-box {
+                flex: 1;
+                min-width: 0;
+                max-width: 160px;
+                padding: 10px 12px;
+            }
+
+            .info-row .info-box .value {
+                font-size: 1rem;
+            }
+
             .spin-btn-mobile {
                 display: block;
             }
@@ -925,8 +950,6 @@
             .info-box {
                 padding: 12px 20px;
                 min-width: 150px;
-                width: 100%;
-                max-width: 280px;
             }
 
             .info-box h3 {
@@ -1117,17 +1140,19 @@
         </div>
 
         <div class="game-info">
-            <div class="info-box jackpot">
-                <h3>Jackpot Pool</h3>
-                <div class="value" id="jackpot-value">0 XPR</div>
+            <div class="info-row">
+                <div class="info-box jackpot">
+                    <h3>Jackpot Pool</h3>
+                    <div class="value" id="jackpot-value">0 XPR</div>
+                </div>
+                <div class="info-box">
+                    <h3>Your Balance</h3>
+                    <div class="value" id="balance-value">-- XPR</div>
+                </div>
             </div>
             <button id="spin-btn-mobile" class="spin-btn-mobile" disabled>SPIN</button>
             <div class="result-display" id="result-display">
                 <p>Connect your wallet and spin to win!</p>
-            </div>
-            <div class="info-box">
-                <h3>Your Balance</h3>
-                <div class="value" id="balance-value">-- XPR</div>
             </div>
         </div>
 
