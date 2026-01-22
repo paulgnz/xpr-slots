@@ -239,6 +239,22 @@ const jackpotValue = document.getElementById('jackpot-value');
 const loadingOverlay = document.getElementById('loading-overlay');
 const spinHistory = document.getElementById('spin-history');
 
+// Helper to sync both spin buttons
+function setSpinButtonDisabled(disabled) {
+  spinBtn.disabled = disabled;
+  if (spinBtnMobile) spinBtnMobile.disabled = disabled;
+}
+
+function setSpinButtonSpinning(spinning) {
+  if (spinning) {
+    spinBtn.classList.add('spinning');
+    if (spinBtnMobile) spinBtnMobile.classList.add('spinning');
+  } else {
+    spinBtn.classList.remove('spinning');
+    if (spinBtnMobile) spinBtnMobile.classList.remove('spinning');
+  }
+}
+
 // Initialize reels with enough symbols for smooth spinning
 function initReels() {
   const reels = [
@@ -402,8 +418,8 @@ function landReelsOnResult(results) {
 
   setTimeout(() => {
     isSpinning = false;
-    spinBtn.classList.remove('spinning');
-    spinBtn.disabled = false;
+    setSpinButtonSpinning(false);
+    setSpinButtonDisabled(false);
     highlightWinningSymbols(results);
   }, totalTime);
 
@@ -482,7 +498,7 @@ async function logout(e) {
   link = null;
 
   connectBtn.textContent = 'Connect Wallet';
-  spinBtn.disabled = true;
+  setSpinButtonDisabled(true);
   balanceValue.textContent = '0 XPR';
 
   const accountMenu = document.getElementById('account-menu');
@@ -544,7 +560,7 @@ function hideAccountMenu() {
 function onWalletConnected() {
   const accountName = session.auth.actor.toString();
   connectBtn.textContent = accountName.toUpperCase();
-  spinBtn.disabled = false;
+  setSpinButtonDisabled(false);
 
   const accountMenu = document.getElementById('account-menu');
   if (accountMenu) {
@@ -663,7 +679,7 @@ async function spin() {
 
   try {
     showLoading();
-    spinBtn.disabled = true;
+    setSpinButtonDisabled(true);
     playCoinSound();
 
     // Get current latest result ID BEFORE spinning
@@ -758,9 +774,9 @@ function resetSpinState() {
   }
 
   // Reset button state
-  spinBtn.disabled = false;
+  setSpinButtonDisabled(false);
   isSpinning = false;
-  spinBtn.classList.remove('spinning');
+  setSpinButtonSpinning(false);
 
   // Stop any spinning animation
   document.querySelectorAll('.reel').forEach(reel => {
@@ -801,7 +817,7 @@ async function waitForSpinResult(player, previousResultId) {
 
   // Timeout - no result found
   showResult('Spin result not received. Check your transaction history.', 'error');
-  spinBtn.disabled = false;
+  setSpinButtonDisabled(false);
   isSpinning = false;
   document.querySelectorAll('.reel').forEach(reel => {
     reel.classList.remove('continuous-spin');
@@ -850,6 +866,7 @@ function hideLoading() {
 document.addEventListener('DOMContentLoaded', () => {
   // Event listeners - must be inside DOMContentLoaded
   spinBtn.addEventListener('click', spin);
+  if (spinBtnMobile) spinBtnMobile.addEventListener('click', spin);
 
   // Connect button - handle click based on session state
   connectBtn.addEventListener('click', (e) => {
