@@ -1,5 +1,6 @@
 import ProtonWebSDK from '@proton/web-sdk';
 import { JsonRpc } from '@proton/js';
+import '@proton/link'; // Required for mobile wallet transport
 
 // Audio Context and Sound Effects
 let audioContext = null;

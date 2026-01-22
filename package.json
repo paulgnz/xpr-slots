@@ -23,6 +23,7 @@
   "dependencies": {
     "@proton/cli": "^0.1.95",
     "@proton/js": "^28.1.2",
+    "@proton/link": "^3.2.4",
     "@proton/web-sdk": "^4.4.1",
     "node-fetch": "^2.7.0",
     "three": "^0.182.0",
