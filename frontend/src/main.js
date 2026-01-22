@@ -514,7 +514,7 @@ function playReelStopSound(reelIndex) {
 }
 
 function playWinSound() {
-  // Triumphant ascending arpeggio
+  // Generic win - ascending arpeggio
   const notes = [523, 659, 784, 1047]; // C5, E5, G5, C6
   notes.forEach((freq, i) => {
     setTimeout(() => {
@@ -522,6 +522,60 @@ function playWinSound() {
       playTone(freq * 1.5, 0.3, 'triangle', 0.1);
     }, i * 100);
   });
+}
+
+// Different sounds for different win types
+function playThreeCherriesSound() {
+  // Big win! Bright, exciting fanfare
+  const notes = [659, 784, 880, 1047, 1319]; // E5, G5, A5, C6, E6
+  notes.forEach((freq, i) => {
+    setTimeout(() => {
+      playTone(freq, 0.25, 'sine', 0.22);
+      playTone(freq * 0.5, 0.25, 'triangle', 0.12);
+    }, i * 80);
+  });
+  // Sparkle effect
+  for (let i = 0; i < 8; i++) {
+    setTimeout(() => playTone(1500 + Math.random() * 1500, 0.08, 'sine', 0.06), 300 + i * 60);
+  }
+}
+
+function playThreeBarsSound() {
+  // Medium-big win - punchy triumphant sound
+  const notes = [392, 494, 587, 784]; // G4, B4, D5, G5
+  notes.forEach((freq, i) => {
+    setTimeout(() => {
+      playTone(freq, 0.2, 'square', 0.15);
+      playTone(freq * 2, 0.15, 'sine', 0.08);
+    }, i * 90);
+  });
+}
+
+function playThreeBellsSound() {
+  // Bell-like chime for bells win
+  const notes = [880, 1109, 1319]; // A5, C#6, E6 - bright chord
+  notes.forEach((freq, i) => {
+    setTimeout(() => {
+      playTone(freq, 0.4, 'sine', 0.18);
+      playTone(freq * 2, 0.3, 'sine', 0.06);
+    }, i * 50);
+  });
+}
+
+function playThreeLemonsSound() {
+  // Smaller win - cheerful quick melody
+  const notes = [523, 587, 659]; // C5, D5, E5
+  notes.forEach((freq, i) => {
+    setTimeout(() => {
+      playTone(freq, 0.15, 'sine', 0.15);
+    }, i * 70);
+  });
+}
+
+function playTwoMatchSound() {
+  // Tiny win - simple two-tone acknowledgment
+  playTone(440, 0.1, 'sine', 0.12);
+  setTimeout(() => playTone(554, 0.15, 'sine', 0.1), 80);
 }
 
 function playJackpotSound() {
@@ -1174,7 +1228,19 @@ async function spin() {
           showResult(`🎉 JACKPOT! You won ${formatXPR(spinResult.payout)}! 🎉`, 'jackpot');
           createWinExplosion();
         } else if (spinResult.payout > 0) {
-          playWinSound();
+          // Play different sounds based on win type
+          const r1 = spinResult.reel1, r2 = spinResult.reel2, r3 = spinResult.reel3;
+          const isThreeOfAKind = (r1 === r2 && r2 === r3);
+          if (isThreeOfAKind) {
+            // Symbol indices: 0=Lemon, 1=Cherry, 2=Bell, 3=Bar, 4=Seven
+            if (r1 === 1) playThreeCherriesSound();      // Cherry - 5x
+            else if (r1 === 3) playThreeBarsSound();     // Bar - 3x
+            else if (r1 === 2) playThreeBellsSound();    // Bell - 2x
+            else if (r1 === 0) playThreeLemonsSound();   // Lemon - 1.5x
+            else playWinSound();
+          } else {
+            playTwoMatchSound(); // Two matching - 0.5x
+          }
           showResult(`Winner! ${SYMBOLS[spinResult.reel1]} ${SYMBOLS[spinResult.reel2]} ${SYMBOLS[spinResult.reel3]} = +${formatXPR(spinResult.payout)}`, 'win');
         } else {
           playLoseSound();
