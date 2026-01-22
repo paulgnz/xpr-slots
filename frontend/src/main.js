@@ -780,8 +780,12 @@ function createWinExplosion() {
 }
 
 function formatXPR(amount) {
-  const xprAmount = Math.floor(Number(amount) / 10000);
-  return xprAmount.toLocaleString() + ' XPR';
+  const xprAmount = Number(amount) / 10000;
+  // Show decimals for small amounts, whole numbers for large
+  if (xprAmount < 10) {
+    return xprAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' XPR';
+  }
+  return Math.floor(xprAmount).toLocaleString() + ' XPR';
 }
 
 function showResult(message, type = 'normal') {
