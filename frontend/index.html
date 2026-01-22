@@ -1484,84 +1484,57 @@
         </div>
 
         <div class="odds-section">
-            <h2>PROVABLY FAIR ODDS</h2>
-            <p class="odds-intro">All odds are verifiable in the <a href="https://github.com/paulgnz/xpr-slots/blob/main/contract/assembly/index.ts" target="_blank">open source smart contract</a>. Results use <a href="https://docs.xprnetwork.org/contract-sdk/rng" target="_blank">XPR Network's RNG oracle</a> for provably fair randomness.</p>
+            <h2>PROVABLY FAIR</h2>
+            <p class="odds-intro">All values below are from the <a href="https://github.com/paulgnz/xpr-slots/blob/main/contract/assembly/index.ts" target="_blank">open source smart contract</a>. Results use <a href="https://docs.xprnetwork.org/contract-sdk/rng" target="_blank">XPR Network's RNG oracle</a> for verifiable randomness.</p>
             <div class="odds-table">
                 <div class="odds-category">
-                    <h4>Symbol Distribution (Per Reel)</h4>
+                    <h4>Symbol Weights (Per Reel, Line 475-481)</h4>
                     <div class="odds-row">
                         <span>🍋 Lemon</span>
-                        <span class="odds-value">32% (40/125)</span>
+                        <span class="odds-value">40 / 125</span>
                     </div>
                     <div class="odds-row">
                         <span>🍒 Cherry</span>
-                        <span class="odds-value">24% (30/125)</span>
+                        <span class="odds-value">30 / 125</span>
                     </div>
                     <div class="odds-row">
                         <span>🔔 Bell</span>
-                        <span class="odds-value">20% (25/125)</span>
+                        <span class="odds-value">25 / 125</span>
                     </div>
                     <div class="odds-row">
                         <span>📊 Bar</span>
-                        <span class="odds-value">16% (20/125)</span>
+                        <span class="odds-value">20 / 125</span>
                     </div>
                     <div class="odds-row">
                         <span>7️⃣ Seven</span>
-                        <span class="odds-value">8% (10/125)</span>
+                        <span class="odds-value">10 / 125</span>
                     </div>
                 </div>
                 <div class="odds-category">
-                    <h4>Win Probabilities</h4>
+                    <h4>Contract Parameters (Lines 29-42)</h4>
                     <div class="odds-row">
-                        <span>🍋🍋🍋 Three Lemons (1.5x)</span>
-                        <span class="odds-value">3.28%</span>
-                    </div>
-                    <div class="odds-row">
-                        <span>🍒🍒🍒 Three Cherries (5x)</span>
-                        <span class="odds-value">1.38%</span>
-                    </div>
-                    <div class="odds-row">
-                        <span>🔔🔔🔔 Three Bells (2x)</span>
-                        <span class="odds-value">0.80%</span>
-                    </div>
-                    <div class="odds-row">
-                        <span>📊📊📊 Three Bars (3x)</span>
-                        <span class="odds-value">0.41%</span>
-                    </div>
-                    <div class="odds-row jackpot-odds">
-                        <span>7️⃣7️⃣7️⃣ JACKPOT</span>
-                        <span class="odds-value">0.051%</span>
-                    </div>
-                    <div class="odds-row">
-                        <span>Any Two Matching (0.5x)</span>
-                        <span class="odds-value">~52%</span>
-                    </div>
-                </div>
-                <div class="odds-category">
-                    <h4>House Edge & Distribution</h4>
-                    <div class="odds-row">
-                        <span>House Edge</span>
-                        <span class="odds-value">5%</span>
+                        <span>HOUSE_EDGE_PERCENT</span>
+                        <span class="odds-value">5</span>
                     </div>
                     <div class="odds-row">
                         <span>Jackpot Contribution</span>
-                        <span class="odds-value">10% of each bet</span>
+                        <span class="odds-value">betAmount / 10</span>
                     </div>
                     <div class="odds-row">
-                        <span>Minimum Bet</span>
+                        <span>MIN_BET</span>
                         <span class="odds-value">1 XPR</span>
                     </div>
                     <div class="odds-row">
-                        <span>Maximum Bet</span>
+                        <span>MAX_BET</span>
                         <span class="odds-value">1,000 XPR</span>
                     </div>
                     <div class="odds-row">
-                        <span>Min Jackpot Payout</span>
+                        <span>MIN_JACKPOT</span>
                         <span class="odds-value">10,000 XPR</span>
                     </div>
                 </div>
             </div>
-            <p class="odds-note">Three-of-a-kind probabilities = (symbol%)³. Two-matching includes any spin with exactly 2 identical symbols.</p>
+            <p class="odds-note">Win probability for three-of-a-kind = (weight/125)³ per symbol. Each reel uses independent random values from the RNG oracle checksum.</p>
         </div>
 
         <div class="stats-section">
