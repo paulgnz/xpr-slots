@@ -444,7 +444,7 @@ async function connectWallet() {
       },
       selectorOptions: {
         appName: CONFIG.appName,
-        appLogo: `${window.location.origin}/avatar.png`
+        appLogo: 'https://www.xprslots.com/avatar.png'
       }
     });
 
