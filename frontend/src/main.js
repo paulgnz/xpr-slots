@@ -803,23 +803,26 @@ function hideLoading() {
   loadingOverlay.classList.add('hidden');
 }
 
-// Event listeners
-connectBtn.addEventListener('click', connectWallet);
-spinBtn.addEventListener('click', spin);
-
-document.getElementById('switch-account-btn')?.addEventListener('click', switchAccount);
-document.getElementById('logout-btn')?.addEventListener('click', logout);
-document.getElementById('sound-btn')?.addEventListener('click', toggleSound);
-
-document.addEventListener('click', (e) => {
-  const accountMenu = document.getElementById('account-menu');
-  if (accountMenu && !accountMenu.contains(e.target) && e.target !== connectBtn) {
-    accountMenu.classList.add('hidden');
-  }
-});
-
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+  // Event listeners - must be inside DOMContentLoaded
+  connectBtn.addEventListener('click', connectWallet);
+  spinBtn.addEventListener('click', spin);
+
+  const switchAccountBtn = document.getElementById('switch-account-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+  const soundBtn = document.getElementById('sound-btn');
+
+  if (switchAccountBtn) switchAccountBtn.addEventListener('click', switchAccount);
+  if (logoutBtn) logoutBtn.addEventListener('click', logout);
+  if (soundBtn) soundBtn.addEventListener('click', toggleSound);
+
+  document.addEventListener('click', (e) => {
+    const accountMenu = document.getElementById('account-menu');
+    if (accountMenu && !accountMenu.contains(e.target) && e.target !== connectBtn) {
+      accountMenu.classList.add('hidden');
+    }
+  });
   initReels();
   createSparkles();
   initBetSelector();
