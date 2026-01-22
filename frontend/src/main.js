@@ -1,6 +1,21 @@
-import ProtonWebSDK from '@proton/web-sdk';
 import { JsonRpc } from '@proton/js';
-import '@proton/link'; // Required for mobile wallet transport
+
+// Dynamic import for wallet SDK (required for mobile)
+let ProtonWebSDK;
+let sdkReady = null;
+
+if (typeof window !== 'undefined') {
+  sdkReady = Promise.all([
+    import('@proton/web-sdk').then((mod) => {
+      ProtonWebSDK = mod.default;
+    }),
+    import('@proton/link')
+  ]).then(() => {});
+}
+
+async function waitForSdk() {
+  if (sdkReady) await sdkReady;
+}
 
 // Audio Context and Sound Effects
 let audioContext = null;
@@ -450,6 +465,7 @@ function highlightWinningSymbols(results) {
 async function connectWallet() {
   try {
     showLoading();
+    await waitForSdk();
 
     const result = await ProtonWebSDK({
       linkOptions: {
@@ -461,8 +477,7 @@ async function connectWallet() {
         requestAccount: CONFIG.contractAccount
       },
       selectorOptions: {
-        appName: CONFIG.appName,
-        appLogo: 'https://www.xprslots.com/avatar.png'
+        appName: CONFIG.appName
       }
     });
 
@@ -942,7 +957,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateContractStats();
 
   // Try to restore previous session
-  ProtonWebSDK({
+  waitForSdk().then(() => ProtonWebSDK({
     linkOptions: {
       chainId: CONFIG.chainId,
       endpoints: CONFIG.endpoints,
@@ -954,7 +969,7 @@ document.addEventListener('DOMContentLoaded', () => {
     selectorOptions: {
       appName: CONFIG.appName
     }
-  }).then(result => {
+  })).then(result => {
     if (result.session) {
       link = result.link;
       session = result.session;
