@@ -333,6 +333,11 @@
             margin-bottom: 20px;
         }
 
+        /* Standalone bet box (outside game-info) */
+        #app > .bet-box {
+            margin-bottom: 20px;
+        }
+
         .wallet-container {
             position: relative;
         }
@@ -1071,9 +1076,8 @@
                 <div class="value" id="jackpot-value">0 XPR</div>
             </div>
             <button id="spin-btn-mobile" class="spin-btn-mobile" disabled>SPIN</button>
-            <div class="info-box bet-box">
-                <h3>Select Bet</h3>
-                <div class="bet-selector" id="bet-selector"></div>
+            <div class="result-display" id="result-display">
+                <p>Connect your wallet and spin to win!</p>
             </div>
             <div class="info-box">
                 <h3>Your Balance</h3>
@@ -1093,8 +1097,9 @@
             <button id="spin-btn" disabled>SPIN</button>
         </div>
 
-        <div class="result-display" id="result-display">
-            <p>Connect your wallet and spin to win!</p>
+        <div class="info-box bet-box">
+            <h3>Select Bet</h3>
+            <div class="bet-selector" id="bet-selector"></div>
         </div>
 
         <div class="payout-section">
