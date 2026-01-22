@@ -462,7 +462,12 @@ async function connectWallet() {
   }
 }
 
-async function logout() {
+async function logout(e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
   if (link && session) {
     try {
       await link.removeSession(CONFIG.appName, session.auth, CONFIG.chainId);
@@ -475,7 +480,6 @@ async function logout() {
   link = null;
 
   connectBtn.textContent = 'Connect Wallet';
-  connectBtn.onclick = connectWallet;
   spinBtn.disabled = true;
   balanceValue.textContent = '0 XPR';
 
@@ -487,20 +491,57 @@ async function logout() {
   showResult('Connect your wallet and spin to win!', 'normal');
 }
 
-async function switchAccount() {
-  await logout();
+async function switchAccount(e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  const accountMenu = document.getElementById('account-menu');
+  if (accountMenu) {
+    accountMenu.classList.add('hidden');
+  }
+
+  if (link && session) {
+    try {
+      await link.removeSession(CONFIG.appName, session.auth, CONFIG.chainId);
+    } catch (error) {
+      console.error('Switch account error:', error);
+    }
+  }
+
+  session = null;
+  // Keep link for reconnecting
+
   await connectWallet();
 }
 
-function toggleAccountMenu() {
+function toggleAccountMenu(e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
   const accountMenu = document.getElementById('account-menu');
   accountMenu.classList.toggle('hidden');
+}
+
+function showAccountMenu() {
+  const accountMenu = document.getElementById('account-menu');
+  if (accountMenu && session) {
+    accountMenu.classList.remove('hidden');
+  }
+}
+
+function hideAccountMenu() {
+  const accountMenu = document.getElementById('account-menu');
+  if (accountMenu) {
+    accountMenu.classList.add('hidden');
+  }
 }
 
 function onWalletConnected() {
   const accountName = session.auth.actor.toString();
   connectBtn.textContent = accountName.toUpperCase();
-  connectBtn.onclick = toggleAccountMenu;
   spinBtn.disabled = false;
 
   const accountMenu = document.getElementById('account-menu');
@@ -806,20 +847,44 @@ function hideLoading() {
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   // Event listeners - must be inside DOMContentLoaded
-  connectBtn.addEventListener('click', connectWallet);
   spinBtn.addEventListener('click', spin);
 
+  // Connect button - handle click based on session state
+  connectBtn.addEventListener('click', (e) => {
+    if (session) {
+      toggleAccountMenu(e);
+    } else {
+      connectWallet();
+    }
+  });
+
+  const walletContainer = document.querySelector('.wallet-container');
+  const accountMenu = document.getElementById('account-menu');
   const switchAccountBtn = document.getElementById('switch-account-btn');
   const logoutBtn = document.getElementById('logout-btn');
   const soundBtn = document.getElementById('sound-btn');
+
+  // Hover support for account menu
+  if (walletContainer && accountMenu) {
+    walletContainer.addEventListener('mouseenter', () => {
+      if (session) {
+        accountMenu.classList.remove('hidden');
+      }
+    });
+    walletContainer.addEventListener('mouseleave', () => {
+      accountMenu.classList.add('hidden');
+    });
+  }
 
   if (switchAccountBtn) switchAccountBtn.addEventListener('click', switchAccount);
   if (logoutBtn) logoutBtn.addEventListener('click', logout);
   if (soundBtn) soundBtn.addEventListener('click', toggleSound);
 
+  // Close menu when clicking outside
   document.addEventListener('click', (e) => {
     const accountMenu = document.getElementById('account-menu');
-    if (accountMenu && !accountMenu.contains(e.target) && e.target !== connectBtn) {
+    const walletContainer = document.querySelector('.wallet-container');
+    if (accountMenu && walletContainer && !walletContainer.contains(e.target)) {
       accountMenu.classList.add('hidden');
     }
   });
