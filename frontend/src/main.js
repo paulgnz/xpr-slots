@@ -1859,4 +1859,37 @@ document.addEventListener('DOMContentLoaded', () => {
   }).catch(() => {
     // No session to restore
   });
+
+  // Poll for recent spins every 15 seconds (only when page is visible)
+  let spinsPollInterval = null;
+
+  function startSpinsPolling() {
+    if (spinsPollInterval) return;
+    spinsPollInterval = setInterval(() => {
+      loadRecentSpins();
+      updateContractStats();
+    }, 15000);
+  }
+
+  function stopSpinsPolling() {
+    if (spinsPollInterval) {
+      clearInterval(spinsPollInterval);
+      spinsPollInterval = null;
+    }
+  }
+
+  // Start polling
+  startSpinsPolling();
+
+  // Pause polling when tab is hidden to save API calls
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      stopSpinsPolling();
+    } else {
+      // Refresh immediately when tab becomes visible, then resume polling
+      loadRecentSpins();
+      updateContractStats();
+      startSpinsPolling();
+    }
+  });
 });
