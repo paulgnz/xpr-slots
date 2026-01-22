@@ -247,16 +247,22 @@
         /* Stats Display */
         .game-info {
             display: flex;
-            flex-direction: column;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .info-row {
-            display: flex;
-            gap: 15px;
+            flex-direction: row;
+            gap: 20px;
+            align-items: stretch;
             justify-content: center;
             flex-wrap: wrap;
+        }
+
+        .game-info .result-display {
+            flex: 1;
+            max-width: 400px;
+            min-width: 250px;
+            margin: 0;
+        }
+
+        .game-info .info-box {
+            flex: 0 0 auto;
         }
 
         .info-box {
@@ -943,26 +949,46 @@
 
             .game-info {
                 gap: 10px;
-                flex-direction: column;
+                flex-direction: row;
+                flex-wrap: wrap;
                 align-items: center;
-            }
-
-            .info-row {
-                display: flex;
-                gap: 10px;
-                width: 100%;
                 justify-content: center;
             }
 
-            .info-row .info-box {
+            /* On mobile: jackpot and balance side by side at top */
+            .game-info .info-box.jackpot {
+                order: 1;
                 flex: 1;
                 min-width: 0;
                 max-width: 160px;
                 padding: 10px 12px;
             }
 
-            .info-row .info-box .value {
+            .game-info .info-box.balance-box {
+                order: 2;
+                flex: 1;
+                min-width: 0;
+                max-width: 160px;
+                padding: 10px 12px;
+            }
+
+            .game-info .info-box .value {
                 font-size: 1rem;
+            }
+
+            /* Spin button below jackpot/balance row */
+            .game-info .spin-btn-mobile {
+                order: 3;
+                width: 100%;
+                max-width: 280px;
+            }
+
+            /* Result display at bottom */
+            .game-info .result-display {
+                order: 4;
+                width: 100%;
+                max-width: 100%;
+                min-width: unset;
             }
 
             .spin-btn-mobile {
@@ -1175,20 +1201,18 @@
 
         <div class="main-controls">
             <div class="game-info">
-                <div class="info-row">
-                    <div class="info-box jackpot">
-                        <h3>Jackpot Pool</h3>
-                        <div class="value" id="jackpot-value">0 XPR</div>
-                    </div>
-                    <div class="info-box">
-                        <h3>Your Balance</h3>
-                        <div class="value" id="balance-value">-- XPR</div>
-                    </div>
+                <div class="info-box jackpot">
+                    <h3>Jackpot Pool</h3>
+                    <div class="value" id="jackpot-value">0 XPR</div>
                 </div>
-                <button id="spin-btn-mobile" class="spin-btn-mobile" disabled>SPIN</button>
                 <div class="result-display" id="result-display">
                     <p>Connect your wallet and spin to win!</p>
                 </div>
+                <div class="info-box balance-box">
+                    <h3>Your Balance</h3>
+                    <div class="value" id="balance-value">-- XPR</div>
+                </div>
+                <button id="spin-btn-mobile" class="spin-btn-mobile" disabled>SPIN</button>
             </div>
 
             <div class="info-box bet-box">
