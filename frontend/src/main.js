@@ -854,12 +854,30 @@ function showResult(message, type = 'normal') {
   resultDisplay.innerHTML = `<p>${message}</p>`;
 }
 
+let loadingHelpTimeout = null;
+
 function showLoading() {
   loadingOverlay.classList.remove('hidden');
+  const loadingHelp = document.getElementById('loading-help');
+  if (loadingHelp) {
+    loadingHelp.classList.add('hidden');
+    // Show help after 3 seconds if still loading
+    loadingHelpTimeout = setTimeout(() => {
+      loadingHelp.classList.remove('hidden');
+    }, 3000);
+  }
 }
 
 function hideLoading() {
   loadingOverlay.classList.add('hidden');
+  const loadingHelp = document.getElementById('loading-help');
+  if (loadingHelp) {
+    loadingHelp.classList.add('hidden');
+  }
+  if (loadingHelpTimeout) {
+    clearTimeout(loadingHelpTimeout);
+    loadingHelpTimeout = null;
+  }
 }
 
 // Initialize
@@ -898,6 +916,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if (switchAccountBtn) switchAccountBtn.addEventListener('click', switchAccount);
   if (logoutBtn) logoutBtn.addEventListener('click', logout);
   if (soundBtn) soundBtn.addEventListener('click', toggleSound);
+
+  // Cancel sign button
+  const cancelSignBtn = document.getElementById('cancel-sign-btn');
+  if (cancelSignBtn) {
+    cancelSignBtn.addEventListener('click', () => {
+      hideLoading();
+      setSpinButtonDisabled(false);
+      isSpinning = false;
+      showResult('Transaction cancelled', 'error');
+    });
+  }
 
   // Close menu when clicking outside
   document.addEventListener('click', (e) => {
