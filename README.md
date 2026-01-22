@@ -54,6 +54,23 @@ Every spin distributes the bet as follows:
 - **10%** → Jackpot pool
 - **85%** → Available for payouts
 
+## Jackpot
+
+**To win:** Get 7️⃣7️⃣7️⃣ (three Sevens)
+
+**Probability:**
+- Seven has 10/125 (8%) chance per reel
+- Three Sevens = (10/125)³ = **0.051%** or ~**1 in 1,953 spins**
+
+**Payout:**
+- Winner receives the entire `jackpotPool`
+- **Minimum guaranteed: 10,000 XPR** (even if pool is smaller)
+- Capped at MAX_PAYOUT (1,000,000 XPR) and available contract balance
+
+**Pool growth:**
+- 10% of every bet automatically goes to jackpot pool
+- Owner can top up via transfer with memo `jackpot`
+
 ## Transfer Memos
 
 | Memo | Action |
