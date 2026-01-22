@@ -1,26 +1,131 @@
-# XPR Slots - Blockchain Slot Machine
+# XPR Slots
 
-A provably fair slot machine game built on XPR Network (testnet) with a ThreeJS 3D frontend.
+Provably fair blockchain slot machine on XPR Network.
 
-## Features
+**Live:** https://xprslots.com
+**Contract:** `xprslots` (mainnet)
+**Owner:** `protonnz`
+**GitHub:** https://github.com/paulgnz/xpr-slots (private)
 
-- **100 XPR per spin** - Fixed spin cost
-- **100,000 XPR Jackpot** - Win the entire jackpot pool
-- **Provably fair** - Uses XPR Network's on-chain RNG oracle
-- **5% House edge** - Transparent fee structure
-- **3D Graphics** - ThreeJS powered slot machine visualization
-- **WebAuth Wallet** - Connect with any XPR Network wallet
+## Architecture
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│    Frontend     │────▶│   xprslots      │────▶│   rng oracle    │
+│   (Vite/JS)     │     │   (contract)    │◀────│   (randomness)  │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+```
+
+### Flow
+1. User sends XPR to `xprslots` with memo `spin`
+2. Contract requests random number from RNG oracle
+3. Oracle calls `receiverand` with random value
+4. Contract calculates result and pays out winnings
 
 ## Payouts
 
 | Combination | Payout |
 |-------------|--------|
-| 7️⃣ 7️⃣ 7️⃣ | JACKPOT (100,000 XPR) |
-| 🍒 🍒 🍒 | 500 XPR (5x) |
-| 📊 📊 📊 | 300 XPR (3x) |
-| 🔔 🔔 🔔 | 200 XPR (2x) |
-| 🍋 🍋 🍋 | 150 XPR (1.5x) |
-| Any 2 Match | 50 XPR (0.5x) |
+| 7️⃣ 7️⃣ 7️⃣ | Jackpot (min 10,000 XPR) |
+| 🍒 🍒 🍒 | 5x bet |
+| 📊 📊 📊 | 3x bet |
+| 🔔 🔔 🔔 | 2x bet |
+| 🍋 🍋 🍋 | 1.5x bet |
+| Any 2 match | 0.5x bet |
+
+### Symbol Mapping
+| Index | Symbol |
+|-------|--------|
+| 0 | 🍋 Lemon |
+| 1 | 🍒 Cherry |
+| 2 | 🔔 Bell |
+| 3 | 📊 Bar |
+| 4 | 7️⃣ Seven |
+
+### Bet Limits
+- **Minimum:** 1 XPR
+- **Maximum:** 1,000 XPR
+- **Max Payout Cap:** 1,000,000 XPR
+
+## Bet Distribution
+
+Every spin distributes the bet as follows:
+- **5%** → House balance (profit)
+- **10%** → Jackpot pool
+- **85%** → Available for payouts
+
+## Transfer Memos
+
+| Memo | Action |
+|------|--------|
+| `spin` | Play the slot machine |
+| `deposit` | Add to house balance |
+| `jackpot` | Add directly to jackpot pool |
+
+---
+
+## IMPORTANT: Accounting Notes
+
+### Internal vs Actual Balance
+
+The contract tracks two internal balances in the `config` table:
+- `jackpotPool` - XPR reserved for jackpot
+- `houseBalance` - House profits
+
+**These are just numbers in a table, NOT actual token balances.**
+
+The actual XPR is held in the `xprslots` eosio.token balance. These must stay in sync.
+
+### Checking Balance Integrity
+
+```bash
+# Internal accounting
+proton table xprslots config
+
+# Actual XPR balance
+proton account xprslots -t | grep XPR
+```
+
+**Rule:** `actual balance` must be >= `jackpotPool` (at minimum)
+
+### RAM Purchase Incident (2026-01-22)
+
+Bought 2MB RAM for the contract which cost ~4,660 XPR from the token balance. This created a mismatch because the internal accounting wasn't updated:
+
+- Internal accounting: ~100,963 XPR
+- Actual balance: ~98,485 XPR
+- **Shortfall:** ~2,477 XPR
+
+**Resolution:** Deposited 2,500 XPR with memo "deposit" to cover the shortfall.
+
+**Lesson:** When buying RAM or doing anything that spends XPR from the contract account externally, you must deposit equivalent XPR to maintain accounting integrity.
+
+---
+
+## Admin Actions
+
+All require `xprslots@owner` or `protonnz@active` authorization:
+
+| Action | Description |
+|--------|-------------|
+| `pause` | Emergency stop - blocks new spins |
+| `unpause` | Resume operations |
+| `withdraw(to, amount)` | Withdraw from house balance only |
+| `setowner(newowner)` | Transfer ownership |
+| `cleanup(maxGames)` | Clear old pending games (>1hr) |
+| `refund(gameId)` | Refund a specific stuck game |
+
+## Security Features
+
+- Oracle-based RNG (can't manipulate randomness)
+- Owner-only admin functions with `requireAuth`
+- MAX_PAYOUT cap (1,000,000 XPR)
+- Minimum jackpot threshold (10,000 XPR)
+- Pending spin tracking (prevents replay attacks)
+- Balance checks before payouts
+- Contract can only spend via defined actions
+
+---
 
 ## Project Structure
 
@@ -28,183 +133,105 @@ A provably fair slot machine game built on XPR Network (testnet) with a ThreeJS 
 xpr-slots/
 ├── contract/
 │   └── assembly/
-│       ├── index.ts        # Smart contract source
-│       └── target/         # Compiled WASM + ABI
+│       ├── index.ts          # Smart contract source
+│       └── target/           # Compiled WASM + ABI
 ├── frontend/
-│   ├── index.html          # Main HTML page
+│   ├── index.html            # UI + all CSS
+│   ├── public/
+│   │   └── og-image.png      # Social sharing image
 │   └── src/
-│       └── main.js         # ThreeJS + blockchain integration
-├── scripts/
-│   └── deploy.js           # Deployment script
-├── vite.config.js          # Frontend build config
-└── package.json
+│       └── main.js           # Frontend logic
+├── README.md
+└── .gitignore
 ```
 
-## Quick Start
+## Development
 
-### 1. Install Dependencies
-
-```bash
-npm install
-cd contract && npm install && cd ..
-```
-
-### 2. Build the Smart Contract
-
+### Build Contract
 ```bash
 cd contract
-npx proton-asc assembly/index.ts
+npm install
+npm run build
 ```
 
-This creates `assembly/target/index.wasm` and `assembly/target/index.abi`.
-
-### 3. Create Testnet Account
-
-Set up the CLI for testnet:
+### Deploy Contract
 ```bash
-npx proton chain:set proton-test
+proton contract:set xprslots ./contract/assembly/target -p xprslots@owner
 ```
 
-Create an account interactively:
+### Run Frontend Locally
 ```bash
-npx proton account:create xprslots1111
-```
-
-When prompted:
-- Enter or generate a private key
-- Enter any email (e.g., `test@test.com`)
-- Enter verification code: `000000`
-- Enter display name: `XPR Slots`
-
-### 4. Deploy the Contract
-
-After creating the account, deploy:
-
-```bash
-# Add your private key
-npx proton key:add YOUR_PRIVATE_KEY
-
-# Buy RAM for contract (needs ~50KB)
-npx proton ram:buy xprslots1111 xprslots1111 50000 -p xprslots1111@active
-
-# Deploy WASM and ABI
-npx proton contract:set xprslots1111 ./contract/assembly/target
-
-# Enable inline actions (required for payouts)
-npx proton contract:enableinline xprslots1111
-
-# Initialize the contract
-npx proton action xprslots1111 init '{"owner":"xprslots1111"}' xprslots1111
-```
-
-### 5. Fund the Contract
-
-The contract needs XPR for payouts:
-
-```bash
-# Get testnet XPR from faucet
-npx proton faucet:claim XPR xprslots1111
-
-# Or transfer from another account
-npx proton action eosio.token transfer '{"from":"youraccount","to":"xprslots1111","quantity":"10000.0000 XPR","memo":"deposit"}' youraccount
-```
-
-### 6. Start the Frontend
-
-```bash
+cd frontend
+npm install
 npm run dev
 ```
 
-Visit `http://localhost:3000` in your browser.
+---
 
-## Smart Contract Actions
-
-| Action | Description | Auth |
-|--------|-------------|------|
-| `init(owner)` | Initialize contract | Contract |
-| `setpaused(paused)` | Pause/unpause | Owner |
-| `transfer` (notify) | Handle incoming XPR | - |
-| `receiverand` | RNG callback | RNG contract |
-| `withdraw(amount, to)` | Withdraw house profits | Owner |
-| `cleanup(gameId)` | Clean up stuck games | Owner |
-
-## Smart Contract Tables
-
-| Table | Description |
-|-------|-------------|
-| `config` | Contract configuration (singleton) |
-| `games` | Active games waiting for RNG |
-| `spinresults` | Historical spin results |
-| `playerstats` | Per-player statistics |
-
-## How It Works
-
-1. **Player sends 100 XPR** to the contract with memo "spin"
-2. **Contract records the game** and requests a random number from the RNG oracle
-3. **RNG oracle generates** a cryptographically secure random value
-4. **Contract receives random** and determines the spin outcome
-5. **Winnings are paid** automatically via inline token transfer
-
-### Distribution per Spin
-
-- 85 XPR → Prize pool (for immediate payouts)
-- 10 XPR → Jackpot pool (accumulates until won)
-- 5 XPR → House edge
-
-## Security Features
-
-- **RNG Oracle verification**: Only the `rng` contract can call `receiverand`
-- **Owner-only admin functions**: Pause, withdraw, cleanup
-- **Automatic refunds**: Stuck games older than 1 hour can be cleaned up
-- **No prediction possible**: Random numbers generated after bet is placed
-
-## Configuration
-
-Edit `frontend/src/main.js` to change:
-
-```javascript
-const CONFIG = {
-  chainId: '71ee83bcf52142d61019d95f9cc5427ba6a0d7ff8accd9e2088ae2abeaf3d3dd', // Testnet
-  endpoints: ['https://api-xprnetwork-test.saltant.io'],
-  contractAccount: 'xprslots1111',  // Your contract account
-  tokenContract: 'eosio.token',
-  appName: 'XPR Slots',
-  spinCost: '100.0000 XPR'
-};
-```
-
-## CLI Commands Reference
+## CLI Quick Reference
 
 ```bash
-# Check contract config
-npx proton table xprslots1111 config
+# Check account status
+proton account xprslots -t
 
-# Check recent spins
-npx proton table xprslots1111 spinresults
+# Check contract config (jackpot, house balance, stats)
+proton table xprslots config
 
-# Check active games
-npx proton table xprslots1111 games
+# Check recent spin results
+proton table xprslots spinresults
 
 # Check player stats
-npx proton table xprslots1111 playerstats
+proton table xprslots playerstats
 
-# Pause contract
-npx proton action xprslots1111 setpaused '{"paused":true}' xprslots1111
+# Check pending games (should be empty normally)
+proton table xprslots games
 
-# Withdraw house profits
-npx proton action xprslots1111 withdraw '{"amount":"100.0000 XPR","to":"youraccount"}' xprslots1111
+# Buy RAM (if needed) - 2MB example
+proton ram:buy xprslots xprslots 2097152 -p xprslots@owner
+
+# Pause contract (emergency)
+proton action xprslots pause '{}' xprslots@owner
+
+# Unpause contract
+proton action xprslots unpause '{}' xprslots@owner
+
+# Withdraw house profits to protonnz
+proton action xprslots withdraw '{"to":"protonnz","amount":"1000.0000 XPR"}' xprslots@owner
+
+# Cleanup old stuck games
+proton action xprslots cleanup '{"maxGames":10}' xprslots@owner
 ```
 
-## Testnet Resources
+---
 
-- **Explorer**: https://testnet.explorer.xprnetwork.org
-- **API Endpoint**: https://api-xprnetwork-test.saltant.io
-- **Faucet**: Use `npx proton faucet:claim XPR accountname`
+## Resources
+
+- **Block Explorer:** https://explorer.xprnetwork.org/account/xprslots
+- **RAM Portal:** https://resources.xprnetwork.org
+- **XPR Network Docs:** https://docs.xprnetwork.org
+
+## Changelog
+
+### 2026-01-22 - Initial Mainnet Launch
+- Deployed to `xprslots` on mainnet
+- Owner set to `protonnz`
+- Initial funding: 100,000 XPR
+- RAM: 2.36 MB (enough for ~20k games)
+- Mobile responsive UI
+- Social meta tags (og:image)
+- Fixed small amount display (0.5 XPR was showing as 0)
+- Fixed logout button event listener
+
+### Known Issues / TODO
+- No admin action to adjust internal balances (jackpotPool/houseBalance) - must deposit to correct any discrepancies
+- Consider adding `adjustbalance` action for accounting corrections after RAM purchases
+
+---
+
+## Disclaimer
+
+This is a demonstration of blockchain-based gaming. Users must be 21+ years old. Do not use in jurisdictions where online gaming is prohibited. The software is provided "AS IS" without warranty. The developers assume no responsibility for any losses.
 
 ## License
 
 MIT
-
-## Disclaimer
-
-This is a demonstration project for educational purposes. Gambling may be illegal in your jurisdiction. This code is provided as-is without warranty.
