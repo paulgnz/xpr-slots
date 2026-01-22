@@ -188,7 +188,36 @@ let selectedBet = CONFIG.defaultBet;
 
 // Symbol mapping
 const SYMBOLS = ['🍋', '🍒', '🔔', '📊', '7️⃣'];
-const SYMBOL_HEIGHT = 110; // Height of each symbol including margin
+// Calculate symbol height dynamically for responsive support
+function getSymbolHeight() {
+  const reel = document.getElementById('reel-0');
+  if (reel && reel.children.length > 0) {
+    const symbol = reel.children[0];
+    const style = window.getComputedStyle(symbol);
+    const height = symbol.offsetHeight;
+    const marginTop = parseFloat(style.marginTop) || 0;
+    const marginBottom = parseFloat(style.marginBottom) || 0;
+    return height + marginTop + marginBottom;
+  }
+  return 110; // Fallback to desktop value
+}
+
+// Get the offset to center a symbol on the win line
+function getCenterOffset() {
+  const wrapper = document.querySelector('.reel-wrapper');
+  const symbolHeight = getSymbolHeight();
+  if (wrapper) {
+    // Win line is at 50% of wrapper height
+    // We want symbol center at win line
+    // Symbol center = offset + symbolHeight/2
+    // Wrapper center = wrapperHeight/2
+    // So: offset + symbolHeight/2 = wrapperHeight/2
+    // offset = (wrapperHeight - symbolHeight) / 2
+    const wrapperHeight = wrapper.offsetHeight;
+    return (wrapperHeight - symbolHeight) / 2;
+  }
+  return 95; // Fallback to desktop value
+}
 
 // Global state
 let session = null;
@@ -230,8 +259,9 @@ function initReels() {
     }
     console.log(`Reel ${reelIndex} initialized with ${reel.children.length} symbols`);
     // Start with symbol at index 1 (cherry) centered on win line
-    // Using same formula: offset = index * 110 - 95
-    const initialOffset = 1 * SYMBOL_HEIGHT - 95; // = 110 - 95 = 15px
+    const symbolHeight = getSymbolHeight();
+    const centerOffset = getCenterOffset();
+    const initialOffset = 1 * symbolHeight - centerOffset;
     reel.style.transform = `translateY(-${initialOffset}px)`;
   });
 }
@@ -313,6 +343,9 @@ function landReelsOnResult(results) {
   const stopDelays = [0, 800, 1600];
   const slowDownDuration = 1200; // Time to decelerate to stop
 
+  const symbolHeight = getSymbolHeight();
+  const centerOffset = getCenterOffset();
+
   reels.forEach((reel, index) => {
     const targetSymbol = results[index];
 
@@ -321,7 +354,7 @@ function landReelsOnResult(results) {
     const baseRotations = 8 + index * 3; // More rotations for later reels
     const symbolsPerSet = 5;
     const finalSymbolIndex = baseRotations * symbolsPerSet + targetSymbol;
-    const finalOffset = finalSymbolIndex * SYMBOL_HEIGHT - 95;
+    const finalOffset = finalSymbolIndex * symbolHeight - centerOffset;
 
     setTimeout(() => {
       // Stop the CSS animation and capture current visual position
@@ -340,12 +373,12 @@ function landReelsOnResult(results) {
       // Calculate final position that's ALWAYS further down (more negative) than current
       // This ensures we never spin backwards
       const currentOffset = Math.abs(currentY);
-      const minOffset = currentOffset + (3 * symbolsPerSet * SYMBOL_HEIGHT); // At least 3 more full rotations
+      const minOffset = currentOffset + (3 * symbolsPerSet * symbolHeight); // At least 3 more full rotations
 
       // Find the next valid position for our target symbol that's past minOffset
       let targetOffset = finalOffset;
       while (targetOffset < minOffset) {
-        targetOffset += symbolsPerSet * SYMBOL_HEIGHT; // Add one full rotation
+        targetOffset += symbolsPerSet * symbolHeight; // Add one full rotation
       }
 
       // Now animate smoothly to final position (always forward/down)
@@ -474,6 +507,9 @@ function onWalletConnected() {
   if (accountMenu) {
     accountMenu.classList.add('hidden');
   }
+
+  // Update result display to show ready state
+  showResult('Ready to spin! Good luck! 🍀', 'normal');
 
   updateBalance();
   updateContractStats();

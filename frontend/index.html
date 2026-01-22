@@ -174,7 +174,17 @@
 
         @keyframes reelSpin {
             0% { transform: translateY(0); }
-            100% { transform: translateY(-550px); } /* 5 symbols * 110px */
+            100% { transform: translateY(-550px); } /* 5 symbols * 110px (desktop) */
+        }
+
+        @keyframes reelSpinMobile {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-375px); } /* 5 symbols * 75px (mobile) */
+        }
+
+        @keyframes reelSpinSmall {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-340px); } /* 5 symbols * 68px (small mobile) */
         }
 
         .symbol {
@@ -771,18 +781,23 @@
 
             .reel-wrapper {
                 width: 80px;
-                height: 200px;
+                height: 225px; /* 3 symbols * 75px for proper alignment */
             }
 
             .symbol {
                 width: 80px;
                 height: 65px;
                 font-size: 40px;
+                margin: 5px 0; /* Explicit margin to ensure 75px total per symbol */
             }
 
             .reel-wrapper::before,
             .reel-wrapper::after {
-                height: 50px;
+                height: 60px;
+            }
+
+            .reel.continuous-spin {
+                animation: reelSpinMobile 0.15s linear infinite;
             }
 
             .game-info {
@@ -918,18 +933,23 @@
 
             .reel-wrapper {
                 width: 70px;
-                height: 180px;
+                height: 204px; /* 3 symbols * 68px for proper alignment */
             }
 
             .symbol {
                 width: 70px;
                 height: 58px;
                 font-size: 32px;
+                margin: 5px 0; /* Explicit margin to ensure 68px total per symbol */
             }
 
             .reels-container {
                 gap: 5px;
                 padding: 10px;
+            }
+
+            .reel.continuous-spin {
+                animation: reelSpinSmall 0.15s linear infinite;
             }
 
             .stats-grid {
