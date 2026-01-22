@@ -1,0 +1,7 @@
+{
+  "extends": "proton-tsc/base-tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./assembly/target"
+  },
+  "include": ["./assembly/**/*.ts"]
+}

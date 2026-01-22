@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test/deploy scripts with keys
+stress-test.js
+test-cleanup.js
+deploy.js
+
+# Scripts folder
+scripts/
+
+# XPR Network credentials (KEEP SECRET)
+.credentials.json
+credentials.json

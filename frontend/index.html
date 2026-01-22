@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XPR Slots - Blockchain Slot Machine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: radial-gradient(ellipse at center, #1a0a2e 0%, #0d0015 50%, #000 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            letter-spacing: 8px;
+            background: linear-gradient(180deg, #fff 0%, #ffd700 50%, #ff6b00 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 30px rgba(255, 200, 0, 0.5)) drop-shadow(0 0 60px rgba(255, 100, 0, 0.3));
+            animation: titleGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            from { filter: drop-shadow(0 0 30px rgba(255, 200, 0, 0.5)) drop-shadow(0 0 60px rgba(255, 100, 0, 0.3)); }
+            to { filter: drop-shadow(0 0 40px rgba(255, 200, 0, 0.8)) drop-shadow(0 0 80px rgba(255, 100, 0, 0.5)); }
+        }
+
+        .subtitle {
+            font-family: 'Rajdhani', sans-serif;
+            color: #8866ff;
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+
+        /* Slot Machine Container */
+        .slot-machine {
+            position: relative;
+            background: linear-gradient(145deg, #2a1a4a 0%, #1a0a30 50%, #0f0520 100%);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow:
+                0 0 0 3px #ffd700,
+                0 0 0 6px #ff6b00,
+                0 0 40px rgba(255, 107, 0, 0.4),
+                0 0 80px rgba(255, 215, 0, 0.2),
+                inset 0 0 60px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+        }
+
+        .slot-machine::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(45deg, #ff6b00, #ffd700, #ff6b00, #ffd700);
+            border-radius: 32px;
+            z-index: -1;
+            animation: borderGlow 3s linear infinite;
+            background-size: 400% 400%;
+        }
+
+        @keyframes borderGlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Reels Container */
+        .reels-container {
+            display: flex;
+            gap: 15px;
+            background: linear-gradient(180deg, #000 0%, #1a0a2e 50%, #000 100%);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow:
+                inset 0 0 30px rgba(0, 0, 0, 0.8),
+                0 0 20px rgba(138, 43, 226, 0.3);
+        }
+
+        /* Individual Reel */
+        .reel-wrapper {
+            position: relative;
+            width: 120px;
+            height: 300px;
+            overflow: hidden;
+            background: linear-gradient(180deg, #0a0015 0%, #150025 50%, #0a0015 100%);
+            border-radius: 15px;
+            box-shadow:
+                inset 0 0 20px rgba(0, 0, 0, 0.9),
+                0 0 15px rgba(138, 43, 226, 0.4);
+        }
+
+        /* Gradient masks for top and bottom fade */
+        .reel-wrapper::before,
+        .reel-wrapper::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 80px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .reel-wrapper::before {
+            top: 0;
+            background: linear-gradient(to bottom,
+                rgba(10, 0, 21, 1) 0%,
+                rgba(10, 0, 21, 0.8) 30%,
+                rgba(10, 0, 21, 0) 100%);
+        }
+
+        .reel-wrapper::after {
+            bottom: 0;
+            background: linear-gradient(to top,
+                rgba(10, 0, 21, 1) 0%,
+                rgba(10, 0, 21, 0.8) 30%,
+                rgba(10, 0, 21, 0) 100%);
+        }
+
+        /* Win line indicator */
+        .win-line {
+            position: absolute;
+            top: 50%;
+            left: -10px;
+            right: -10px;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #ffd700, #ff6b00, #ffd700, transparent);
+            transform: translateY(-50%);
+            z-index: 20;
+            box-shadow: 0 0 20px #ffd700, 0 0 40px #ff6b00;
+            opacity: 0.8;
+        }
+
+        .reel {
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.1s ease-out;
+        }
+
+        .reel.continuous-spin {
+            animation: reelSpin 0.15s linear infinite;
+        }
+
+        @keyframes reelSpin {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-550px); } /* 5 symbols * 110px */
+        }
+
+        .symbol {
+            width: 120px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            background: linear-gradient(145deg, #2a1a4a 0%, #1a0a30 100%);
+            border-radius: 10px;
+            margin: 5px 0;
+            box-shadow:
+                inset 0 2px 10px rgba(255, 255, 255, 0.1),
+                inset 0 -2px 10px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        .symbol.highlight {
+            background: linear-gradient(145deg, #3a2a6a 0%, #2a1a50 100%);
+            box-shadow:
+                0 0 30px rgba(255, 215, 0, 0.5),
+                inset 0 2px 10px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Stats Display */
+        .game-info {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .info-box {
+            background: linear-gradient(145deg, rgba(40, 20, 80, 0.8), rgba(20, 10, 40, 0.9));
+            border: 2px solid rgba(138, 43, 226, 0.5);
+            border-radius: 15px;
+            padding: 15px 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            min-width: 180px;
+            box-shadow:
+                0 0 20px rgba(138, 43, 226, 0.2),
+                inset 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .info-box h3 {
+            color: #8866ff;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .info-box .value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #00ffaa;
+        }
+
+        .info-box.jackpot {
+            border-color: #ffd700;
+            box-shadow:
+                0 0 30px rgba(255, 215, 0, 0.3),
+                inset 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .info-box.jackpot .value {
+            color: #ffd700;
+        }
+
+        .bet-selector {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .bet-btn {
+            background: linear-gradient(145deg, rgba(60, 40, 100, 0.8), rgba(40, 20, 60, 0.9));
+            border: 2px solid rgba(138, 43, 226, 0.4);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #aaa;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 60px;
+        }
+
+        .bet-btn:hover {
+            border-color: #8866ff;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
+        }
+
+        .bet-btn.active {
+            background: linear-gradient(145deg, rgba(100, 60, 180, 0.9), rgba(80, 40, 140, 0.9));
+            border-color: #ffd700;
+            color: #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4), inset 0 0 10px rgba(255, 215, 0, 0.1);
+            animation: jackpotPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes jackpotPulse {
+            0%, 100% { text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); transform: scale(1); }
+            50% { text-shadow: 0 0 30px rgba(255, 215, 0, 0.8); transform: scale(1.02); }
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .wallet-container {
+            position: relative;
+        }
+
+        button {
+            font-family: 'Orbitron', sans-serif;
+            padding: 18px 45px;
+            font-size: 1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #connect-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        #connect-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
+        }
+
+        #spin-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #ffd700 100%);
+            background-size: 200% 200%;
+            color: #1a0a2e;
+            font-size: 1.2rem;
+            padding: 20px 60px;
+            box-shadow:
+                0 4px 30px rgba(245, 87, 108, 0.5),
+                0 0 60px rgba(255, 215, 0, 0.3);
+            animation: spinBtnGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes spinBtnGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        #spin-btn:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow:
+                0 8px 40px rgba(245, 87, 108, 0.7),
+                0 0 80px rgba(255, 215, 0, 0.5);
+        }
+
+        #spin-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            animation: none;
+        }
+
+        #spin-btn.spinning {
+            animation: spinBtnSpin 0.5s linear infinite;
+        }
+
+        @keyframes spinBtnSpin {
+            from { filter: hue-rotate(0deg); }
+            to { filter: hue-rotate(360deg); }
+        }
+
+        #sound-btn {
+            background: rgba(30, 15, 60, 0.8);
+            border: 2px solid rgba(138, 43, 226, 0.5);
+            color: white;
+            font-size: 1.5rem;
+            padding: 10px 15px;
+            min-width: auto;
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.3);
+        }
+
+        #sound-btn:hover {
+            background: rgba(50, 25, 80, 0.9);
+            border-color: #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+            transform: scale(1.1);
+        }
+
+        /* Account Menu */
+        .account-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(30, 15, 60, 0.95);
+            border-radius: 15px;
+            padding: 10px;
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .account-menu.hidden {
+            display: none;
+        }
+
+        .account-menu button {
+            padding: 12px 20px;
+            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .account-menu button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: none;
+        }
+
+        #logout-btn {
+            background: rgba(255, 80, 80, 0.2) !important;
+            border-color: rgba(255, 80, 80, 0.3) !important;
+        }
+
+        #logout-btn:hover {
+            background: rgba(255, 80, 80, 0.4) !important;
+        }
+
+        /* Result Display */
+        .result-display {
+            background: linear-gradient(145deg, rgba(40, 20, 80, 0.6), rgba(20, 10, 40, 0.8));
+            border: 2px solid rgba(138, 43, 226, 0.3);
+            border-radius: 20px;
+            padding: 25px 40px;
+            text-align: center;
+            min-height: 80px;
+            width: 100%;
+            max-width: 600px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .result-display.win {
+            border-color: #00ffaa;
+            background: linear-gradient(145deg, rgba(0, 100, 60, 0.3), rgba(0, 50, 30, 0.5));
+            box-shadow: 0 0 40px rgba(0, 255, 170, 0.3);
+            animation: winPulse 0.5s ease-in-out 3;
+        }
+
+        @keyframes winPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .result-display.jackpot {
+            border-color: #ffd700;
+            background: linear-gradient(145deg, rgba(100, 80, 0, 0.4), rgba(50, 40, 0, 0.6));
+            box-shadow:
+                0 0 60px rgba(255, 215, 0, 0.5),
+                0 0 120px rgba(255, 107, 0, 0.3);
+            animation: jackpotWin 0.3s ease-in-out infinite alternate;
+        }
+
+        @keyframes jackpotWin {
+            from { box-shadow: 0 0 60px rgba(255, 215, 0, 0.5), 0 0 120px rgba(255, 107, 0, 0.3); }
+            to { box-shadow: 0 0 100px rgba(255, 215, 0, 0.8), 0 0 200px rgba(255, 107, 0, 0.5); }
+        }
+
+        /* Payout Table */
+        .payout-section {
+            margin-top: 40px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .payout-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #8866ff;
+            font-size: 1.5rem;
+            letter-spacing: 3px;
+        }
+
+        .payout-table {
+            background: linear-gradient(145deg, rgba(40, 20, 80, 0.5), rgba(20, 10, 40, 0.7));
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+        }
+
+        .payout-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            border-bottom: 1px solid rgba(138, 43, 226, 0.2);
+        }
+
+        .payout-row:last-child {
+            border-bottom: none;
+        }
+
+        .payout-row .combination {
+            font-size: 1.5rem;
+            letter-spacing: 8px;
+        }
+
+        .payout-row .payout {
+            font-family: 'Orbitron', sans-serif;
+            color: #00ffaa;
+            font-weight: 700;
+        }
+
+        .payout-row.jackpot {
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), rgba(255, 107, 0, 0.1));
+        }
+
+        .payout-row.jackpot .payout {
+            color: #ffd700;
+        }
+
+        /* Stats Section */
+        .stats-section {
+            margin-top: 40px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .stats-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #8866ff;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            background: linear-gradient(145deg, rgba(40, 20, 80, 0.4), rgba(20, 10, 40, 0.6));
+            padding: 15px 20px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            border: 1px solid rgba(138, 43, 226, 0.2);
+        }
+
+        .stat-item span:last-child {
+            font-family: 'Orbitron', sans-serif;
+            color: #00ffaa;
+        }
+
+        /* Recent Spins */
+        .recent-spins {
+            margin-top: 40px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .recent-spins h2 {
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #8866ff;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+        }
+
+        .spin-history {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .spin-item {
+            background: linear-gradient(145deg, rgba(40, 20, 80, 0.4), rgba(20, 10, 40, 0.6));
+            padding: 15px 20px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(138, 43, 226, 0.2);
+        }
+
+        .spin-item.win {
+            border-left: 4px solid #00ffaa;
+        }
+
+        .spin-item .symbols {
+            font-size: 1.5rem;
+            letter-spacing: 10px;
+        }
+
+        .spin-item .payout-amount {
+            font-family: 'Orbitron', sans-serif;
+            color: #00ffaa;
+        }
+
+        .spin-item .payout-amount.loss {
+            color: #666;
+        }
+
+        /* Footer */
+        .disclaimer {
+            margin-top: 50px;
+            background: linear-gradient(145deg, rgba(80, 20, 20, 0.6), rgba(40, 10, 10, 0.8));
+            border: 2px solid rgba(255, 100, 100, 0.4);
+            border-radius: 15px;
+            padding: 25px 30px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            color: #ccc;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .disclaimer h3 {
+            color: #ff6b6b;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .disclaimer p {
+            margin-bottom: 10px;
+        }
+
+        .disclaimer strong {
+            color: #ffaa66;
+        }
+
+        .disclaimer ul {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+
+        .disclaimer li {
+            margin-bottom: 8px;
+        }
+
+        .disclaimer .warning {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 100, 100, 0.3);
+            color: #ff9999;
+            font-style: italic;
+        }
+
+        .disclaimer a {
+            color: #66aaff;
+            text-decoration: underline;
+        }
+
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #555;
+            padding: 20px;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: #8866ff;
+            text-decoration: none;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #1a0a2e;
+            border-top-color: #ffd700;
+            border-right-color: #ff6b00;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            font-family: 'Orbitron', sans-serif;
+            color: #ffd700;
+            letter-spacing: 3px;
+        }
+
+        /* Particles/Sparkles Background */
+        .sparkles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ffd700;
+            border-radius: 50%;
+            animation: sparkle 3s ease-in-out infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="sparkles" id="sparkles"></div>
+
+    <div id="app">
+        <header>
+            <h1>XPR SLOTS</h1>
+            <p class="subtitle">Blockchain-Powered Slot Machine</p>
+        </header>
+
+        <div class="slot-machine">
+            <div class="reels-container">
+                <div class="reel-wrapper">
+                    <div class="reel" id="reel-0">
+                        <div class="symbol">🍋</div>
+                        <div class="symbol">🍒</div>
+                        <div class="symbol">🔔</div>
+                        <div class="symbol">📊</div>
+                        <div class="symbol">7️⃣</div>
+                    </div>
+                </div>
+                <div class="reel-wrapper">
+                    <div class="reel" id="reel-1">
+                        <div class="symbol">🍋</div>
+                        <div class="symbol">🍒</div>
+                        <div class="symbol">🔔</div>
+                        <div class="symbol">📊</div>
+                        <div class="symbol">7️⃣</div>
+                    </div>
+                </div>
+                <div class="reel-wrapper">
+                    <div class="reel" id="reel-2">
+                        <div class="symbol">🍋</div>
+                        <div class="symbol">🍒</div>
+                        <div class="symbol">🔔</div>
+                        <div class="symbol">📊</div>
+                        <div class="symbol">7️⃣</div>
+                    </div>
+                </div>
+                <div class="win-line"></div>
+            </div>
+        </div>
+
+        <div class="game-info">
+            <div class="info-box jackpot">
+                <h3>Jackpot Pool</h3>
+                <div class="value" id="jackpot-value">0 XPR</div>
+            </div>
+            <div class="info-box bet-box">
+                <h3>Select Bet</h3>
+                <div class="bet-selector" id="bet-selector"></div>
+            </div>
+            <div class="info-box">
+                <h3>Your Balance</h3>
+                <div class="value" id="balance-value">-- XPR</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="sound-btn" title="Mute sounds">🔊</button>
+            <div class="wallet-container">
+                <button id="connect-btn">Connect Wallet</button>
+                <div id="account-menu" class="account-menu hidden">
+                    <button id="switch-account-btn">Switch Account</button>
+                    <button id="logout-btn">Logout</button>
+                </div>
+            </div>
+            <button id="spin-btn" disabled>SPIN</button>
+        </div>
+
+        <div class="result-display" id="result-display">
+            <p>Connect your wallet and spin to win!</p>
+        </div>
+
+        <div class="payout-section">
+            <h2>PAYOUTS</h2>
+            <div class="payout-table">
+                <div class="payout-row jackpot">
+                    <span class="combination">7️⃣ 7️⃣ 7️⃣</span>
+                    <span class="payout">JACKPOT! (min 100k XPR)</span>
+                </div>
+                <div class="payout-row">
+                    <span class="combination">🍒 🍒 🍒</span>
+                    <span class="payout">5x bet</span>
+                </div>
+                <div class="payout-row">
+                    <span class="combination">📊 📊 📊</span>
+                    <span class="payout">3x bet</span>
+                </div>
+                <div class="payout-row">
+                    <span class="combination">🔔 🔔 🔔</span>
+                    <span class="payout">2x bet</span>
+                </div>
+                <div class="payout-row">
+                    <span class="combination">🍋 🍋 🍋</span>
+                    <span class="payout">1.5x bet</span>
+                </div>
+                <div class="payout-row">
+                    <span class="combination">Any 2 Match</span>
+                    <span class="payout">0.5x bet</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <h2>CONTRACT STATS</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span>Total Spins</span>
+                    <span id="stat-total-spins">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Total Wagered</span>
+                    <span id="stat-total-wagered">0 XPR</span>
+                </div>
+                <div class="stat-item">
+                    <span>Total Paid Out</span>
+                    <span id="stat-total-paid">0 XPR</span>
+                </div>
+                <div class="stat-item">
+                    <span>House Edge</span>
+                    <span>5%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="recent-spins">
+            <h2>RECENT SPINS</h2>
+            <div class="spin-history" id="spin-history">
+                <p style="text-align: center; color: #555;">No spins yet</p>
+            </div>
+        </div>
+
+        <div class="disclaimer">
+            <h3>IMPORTANT DISCLAIMER</h3>
+            <p><strong>FOR DEMONSTRATION PURPOSES ONLY</strong></p>
+            <p>This application is a technical demonstration of blockchain-based gaming on XPR Network. It is NOT intended for real gambling or wagering.</p>
+            <ul>
+                <li>You must be <strong>21 years of age or older</strong> to use this application.</li>
+                <li>Do NOT use this application in any jurisdiction where online gaming, gambling, or blockchain-based wagering is regulated, restricted, or prohibited.</li>
+                <li>This software is provided "AS IS" without warranty of any kind.</li>
+                <li>The developers assume no responsibility for any losses incurred.</li>
+                <li>By using this application, you confirm that you understand and accept these terms.</li>
+            </ul>
+            <p class="warning">If you or someone you know has a gambling problem, please seek help at <a href="https://www.ncpgambling.org" target="_blank">ncpgambling.org</a> or call 1-800-522-4700.</p>
+        </div>
+
+        <footer>
+            <p>Built on <a href="https://xprnetwork.org" target="_blank">XPR Network</a></p>
+            <p>Contract: <code id="contract-address">xprslots1111</code></p>
+        </footer>
+    </div>
+
+    <div class="loading-overlay hidden" id="loading-overlay">
+        <div class="spinner"></div>
+        <p class="loading-text">PROCESSING...</p>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>

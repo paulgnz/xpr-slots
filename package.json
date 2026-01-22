@@ -1,0 +1,34 @@
+{
+  "name": "xpr-slots",
+  "version": "1.0.0",
+  "description": "Blockchain slot machine on XPR Network with ThreeJS frontend",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "build:contract": "cd contract && npx proton-asc assembly/index.ts",
+    "deploy": "node scripts/deploy.js"
+  },
+  "keywords": [
+    "xpr",
+    "blockchain",
+    "slots",
+    "threejs",
+    "web3"
+  ],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@proton/cli": "^0.1.95",
+    "@proton/js": "^28.1.2",
+    "@proton/web-sdk": "^4.4.1",
+    "node-fetch": "^2.7.0",
+    "three": "^0.182.0",
+    "vite": "^7.3.1"
+  },
+  "devDependencies": {
+    "node-pty": "^1.1.0"
+  }
+}

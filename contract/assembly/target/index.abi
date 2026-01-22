@@ -1,0 +1,359 @@
+{
+  "version": "eosio::abi/1.2",
+  "structs": [
+    {
+      "name": "Config",
+      "base": "",
+      "fields": [
+        {
+          "name": "owner",
+          "type": "name"
+        },
+        {
+          "name": "paused",
+          "type": "bool"
+        },
+        {
+          "name": "totalSpins",
+          "type": "uint64"
+        },
+        {
+          "name": "totalWagered",
+          "type": "uint64"
+        },
+        {
+          "name": "totalPaidOut",
+          "type": "uint64"
+        },
+        {
+          "name": "jackpotPool",
+          "type": "uint64"
+        },
+        {
+          "name": "houseBalance",
+          "type": "uint64"
+        },
+        {
+          "name": "nextGameId",
+          "type": "uint64"
+        },
+        {
+          "name": "nextResultId",
+          "type": "uint64"
+        }
+      ]
+    },
+    {
+      "name": "Game",
+      "base": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uint64"
+        },
+        {
+          "name": "player",
+          "type": "name"
+        },
+        {
+          "name": "betAmount",
+          "type": "uint64"
+        },
+        {
+          "name": "status",
+          "type": "uint8"
+        },
+        {
+          "name": "signingValue",
+          "type": "uint64"
+        },
+        {
+          "name": "createdAt",
+          "type": "uint64"
+        }
+      ]
+    },
+    {
+      "name": "PlayerStats",
+      "base": "",
+      "fields": [
+        {
+          "name": "account",
+          "type": "name"
+        },
+        {
+          "name": "totalSpins",
+          "type": "uint64"
+        },
+        {
+          "name": "totalWagered",
+          "type": "uint64"
+        },
+        {
+          "name": "totalWon",
+          "type": "uint64"
+        },
+        {
+          "name": "biggestWin",
+          "type": "uint64"
+        },
+        {
+          "name": "jackpotsWon",
+          "type": "uint64"
+        }
+      ]
+    },
+    {
+      "name": "SpinResult",
+      "base": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uint64"
+        },
+        {
+          "name": "player",
+          "type": "name"
+        },
+        {
+          "name": "reel1",
+          "type": "uint8"
+        },
+        {
+          "name": "reel2",
+          "type": "uint8"
+        },
+        {
+          "name": "reel3",
+          "type": "uint8"
+        },
+        {
+          "name": "betAmount",
+          "type": "uint64"
+        },
+        {
+          "name": "payout",
+          "type": "uint64"
+        },
+        {
+          "name": "jackpotWon",
+          "type": "bool"
+        },
+        {
+          "name": "timestamp",
+          "type": "uint64"
+        }
+      ]
+    },
+    {
+      "name": "cleanresults",
+      "base": "",
+      "fields": [
+        {
+          "name": "count",
+          "type": "uint64"
+        }
+      ]
+    },
+    {
+      "name": "cleanstats",
+      "base": "",
+      "fields": [
+        {
+          "name": "minSpins",
+          "type": "uint64"
+        },
+        {
+          "name": "maxToRemove",
+          "type": "uint64"
+        }
+      ]
+    },
+    {
+      "name": "cleanup",
+      "base": "",
+      "fields": [
+        {
+          "name": "gameId",
+          "type": "uint64"
+        }
+      ]
+    },
+    {
+      "name": "init",
+      "base": "",
+      "fields": [
+        {
+          "name": "owner",
+          "type": "name"
+        }
+      ]
+    },
+    {
+      "name": "migrate",
+      "base": "",
+      "fields": [
+        {
+          "name": "owner",
+          "type": "name"
+        }
+      ]
+    },
+    {
+      "name": "receiverand",
+      "base": "",
+      "fields": [
+        {
+          "name": "gameId",
+          "type": "uint64"
+        },
+        {
+          "name": "randomChecksum",
+          "type": "checksum256"
+        }
+      ]
+    },
+    {
+      "name": "removestats",
+      "base": "",
+      "fields": [
+        {
+          "name": "player",
+          "type": "name"
+        }
+      ]
+    },
+    {
+      "name": "setowner",
+      "base": "",
+      "fields": [
+        {
+          "name": "newOwner",
+          "type": "name"
+        }
+      ]
+    },
+    {
+      "name": "setpaused",
+      "base": "",
+      "fields": [
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "statstotal",
+      "base": "",
+      "fields": []
+    },
+    {
+      "name": "withdraw",
+      "base": "",
+      "fields": [
+        {
+          "name": "amount",
+          "type": "asset"
+        },
+        {
+          "name": "to",
+          "type": "name"
+        }
+      ]
+    }
+  ],
+  "types": [],
+  "actions": [
+    {
+      "name": "cleanresults",
+      "type": "cleanresults",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "cleanstats",
+      "type": "cleanstats",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "cleanup",
+      "type": "cleanup",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "init",
+      "type": "init",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "migrate",
+      "type": "migrate",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "receiverand",
+      "type": "receiverand",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "removestats",
+      "type": "removestats",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "setowner",
+      "type": "setowner",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "setpaused",
+      "type": "setpaused",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "statstotal",
+      "type": "statstotal",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "withdraw",
+      "type": "withdraw",
+      "ricardian_contract": ""
+    }
+  ],
+  "tables": [
+    {
+      "name": "config",
+      "type": "Config",
+      "index_type": "i64",
+      "key_names": [],
+      "key_types": []
+    },
+    {
+      "name": "games",
+      "type": "Game",
+      "index_type": "i64",
+      "key_names": [],
+      "key_types": []
+    },
+    {
+      "name": "playerstats",
+      "type": "PlayerStats",
+      "index_type": "i64",
+      "key_names": [],
+      "key_types": []
+    },
+    {
+      "name": "spinresults",
+      "type": "SpinResult",
+      "index_type": "i64",
+      "key_names": [],
+      "key_types": []
+    }
+  ],
+  "ricardian_clauses": [],
+  "variants": [],
+  "action_results": [],
+  "abi_extensions": [],
+  "error_messages": []
+}

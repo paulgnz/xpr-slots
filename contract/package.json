@@ -1,0 +1,14 @@
+{
+  "name": "xpr-slots-contract",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "proton-tsc assembly/index.ts --outDir assembly/target"
+  },
+  "dependencies": {
+    "proton-tsc": "^0.3.58"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
