@@ -414,6 +414,350 @@ function playCasinoMusic() {
   musicInterval = setInterval(playLoop, loopDuration);
 }
 
+function playDnBMusic() {
+  const ctx = getAudioContext();
+
+  // Master chain
+  const masterGain = ctx.createGain();
+  const compressor = ctx.createDynamicsCompressor();
+  masterGain.gain.value = 0.22;
+  compressor.threshold.value = -18;
+  compressor.knee.value = 8;
+  compressor.ratio.value = 6;
+  compressor.attack.value = 0.003;
+  compressor.release.value = 0.1;
+  masterGain.connect(compressor);
+  compressor.connect(ctx.destination);
+
+  // DnB tempo: 174 BPM
+  const BPM = 174;
+  const beatMs = 60000 / BPM;
+  const sixteenth = beatMs / 4;
+
+  // Notes
+  const NOTE = {
+    E1: 41.2, A1: 55, B1: 61.74, C2: 65.41, D2: 73.42, E2: 82.41, F2: 87.31, G2: 98,
+    A2: 110, B2: 123.47, C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196,
+    A3: 220, B3: 246.94, C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392,
+    A4: 440, B4: 493.88, C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 784,
+    A5: 880, C6: 1046.5, E6: 1318.5
+  };
+
+  // Reese bass pattern (dark, wobbly DnB bass)
+  const bassPattern = [
+    { note: NOTE.E1, time: 0, dur: 1.5 },
+    { note: NOTE.E1, time: 2, dur: 0.5 },
+    { note: NOTE.G2, time: 2.75, dur: 0.25 },
+    { note: NOTE.E1, time: 3, dur: 0.75 },
+    { note: NOTE.D2, time: 4, dur: 1.5 },
+    { note: NOTE.E1, time: 6, dur: 0.5 },
+    { note: NOTE.A1, time: 6.75, dur: 0.25 },
+    { note: NOTE.E1, time: 7, dur: 0.75 }
+  ];
+
+  // Casino-style synth stabs (video game vibes)
+  const stabPattern = [
+    { notes: [NOTE.E4, NOTE.G4, NOTE.B4], time: 0.5, dur: 0.15 },
+    { notes: [NOTE.E4, NOTE.G4, NOTE.B4], time: 1.25, dur: 0.1 },
+    { notes: [NOTE.D4, NOTE.F4, NOTE.A4], time: 2.5, dur: 0.15 },
+    { notes: [NOTE.E4, NOTE.G4, NOTE.B4], time: 4.5, dur: 0.15 },
+    { notes: [NOTE.G4, NOTE.B4, NOTE.D5], time: 5.25, dur: 0.1 },
+    { notes: [NOTE.A4, NOTE.C5, NOTE.E5], time: 6.5, dur: 0.2 }
+  ];
+
+  // Slot machine arpeggio (ascending coin sounds)
+  const coinArp = [
+    { note: NOTE.E5, time: 1.5 }, { note: NOTE.G5, time: 1.5625 }, { note: NOTE.B4, time: 1.625 }, { note: NOTE.E6, time: 1.6875 },
+    { note: NOTE.A4, time: 3.5 }, { note: NOTE.C5, time: 3.5625 }, { note: NOTE.E5, time: 3.625 }, { note: NOTE.A5, time: 3.6875 },
+    { note: NOTE.G4, time: 5.5 }, { note: NOTE.B4, time: 5.5625 }, { note: NOTE.D5, time: 5.625 }, { note: NOTE.G5, time: 5.6875 },
+    { note: NOTE.E5, time: 7.5 }, { note: NOTE.G5, time: 7.5625 }, { note: NOTE.B4, time: 7.625 }, { note: NOTE.E6, time: 7.6875 }
+  ];
+
+  // 8-bit lead melody (video game style)
+  const melodyPattern = [
+    { note: NOTE.E5, time: 0, dur: 0.25 },
+    { note: NOTE.G5, time: 0.5, dur: 0.25 },
+    { note: NOTE.A5, time: 0.75, dur: 0.5 },
+    { note: NOTE.G5, time: 1.5, dur: 0.25 },
+    { note: NOTE.E5, time: 2, dur: 0.5 },
+    { note: NOTE.D5, time: 2.75, dur: 0.25 },
+    { note: NOTE.E5, time: 3, dur: 0.75 },
+    { note: NOTE.E5, time: 4, dur: 0.25 },
+    { note: NOTE.G5, time: 4.5, dur: 0.25 },
+    { note: NOTE.A5, time: 5, dur: 0.5 },
+    { note: NOTE.C6, time: 5.75, dur: 0.25 },
+    { note: NOTE.B4, time: 6, dur: 0.5 },
+    { note: NOTE.A5, time: 6.75, dur: 0.25 },
+    { note: NOTE.G5, time: 7, dur: 0.75 }
+  ];
+
+  // Reese bass with wobble
+  function playReeseBass(freq, startTime, duration) {
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    // LFO for wobble
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.frequency.value = 4 + Math.random() * 2; // Wobble speed
+    lfoGain.gain.value = 300;
+    lfo.connect(lfoGain);
+    lfoGain.connect(filter.frequency);
+
+    osc1.type = 'sawtooth';
+    osc2.type = 'sawtooth';
+    osc1.frequency.value = freq;
+    osc2.frequency.value = freq * 1.005; // Detune for thickness
+
+    filter.type = 'lowpass';
+    filter.frequency.value = 600;
+    filter.Q.value = 8;
+
+    osc1.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
+    gain.connect(masterGain);
+
+    gain.gain.setValueAtTime(0.4, startTime);
+    gain.gain.setValueAtTime(0.35, startTime + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+
+    lfo.start(startTime);
+    osc1.start(startTime);
+    osc2.start(startTime);
+    lfo.stop(startTime + duration);
+    osc1.stop(startTime + duration);
+    osc2.stop(startTime + duration);
+    musicNodes.push(osc1, osc2, lfo);
+  }
+
+  // Punchy synth stab
+  function playStab(freqs, startTime, duration) {
+    freqs.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = 'square';
+      osc.frequency.value = freq;
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(4000, startTime);
+      filter.frequency.exponentialRampToValueAtTime(800, startTime + duration);
+      filter.Q.value = 3;
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+
+      gain.gain.setValueAtTime(0.12, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+      osc.start(startTime);
+      osc.stop(startTime + duration);
+      musicNodes.push(osc);
+    });
+  }
+
+  // 8-bit lead with pitch bend
+  function playLead8bit(freq, startTime, duration) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(freq * 0.98, startTime);
+    osc.frequency.linearRampToValueAtTime(freq, startTime + 0.02);
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+
+    gain.gain.setValueAtTime(0.08, startTime);
+    gain.gain.setValueAtTime(0.06, startTime + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+    osc.start(startTime);
+    osc.stop(startTime + duration);
+    musicNodes.push(osc);
+  }
+
+  // Coin/arpeggio sound
+  function playCoin(freq, startTime) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+
+    gain.gain.setValueAtTime(0.1, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.1);
+
+    osc.start(startTime);
+    osc.stop(startTime + 0.1);
+    musicNodes.push(osc);
+  }
+
+  // DnB breakbeat kick
+  function playKick(startTime) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(150, startTime);
+    osc.frequency.exponentialRampToValueAtTime(40, startTime + 0.1);
+
+    osc.connect(gain);
+    gain.connect(masterGain);
+
+    gain.gain.setValueAtTime(0.5, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.15);
+
+    osc.start(startTime);
+    osc.stop(startTime + 0.15);
+    musicNodes.push(osc);
+  }
+
+  // Snappy snare
+  function playSnare(startTime) {
+    // Noise component
+    const bufferSize = ctx.sampleRate * 0.1;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
+    }
+
+    const noise = ctx.createBufferSource();
+    const noiseGain = ctx.createGain();
+    const noiseFilter = ctx.createBiquadFilter();
+
+    noise.buffer = buffer;
+    noiseFilter.type = 'highpass';
+    noiseFilter.frequency.value = 2000;
+
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(masterGain);
+    noiseGain.gain.value = 0.25;
+
+    // Tonal component
+    const osc = ctx.createOscillator();
+    const oscGain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(200, startTime);
+    osc.frequency.exponentialRampToValueAtTime(80, startTime + 0.05);
+    osc.connect(oscGain);
+    oscGain.connect(masterGain);
+    oscGain.gain.setValueAtTime(0.2, startTime);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.08);
+
+    noise.start(startTime);
+    osc.start(startTime);
+    osc.stop(startTime + 0.08);
+    musicNodes.push(noise, osc);
+  }
+
+  // Fast hi-hats
+  function playHat(startTime, open = false) {
+    const bufferSize = ctx.sampleRate * (open ? 0.15 : 0.04);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, open ? 1.5 : 4);
+    }
+
+    const noise = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    noise.buffer = buffer;
+    filter.type = 'highpass';
+    filter.frequency.value = 8000;
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(masterGain);
+    gain.gain.value = open ? 0.08 : 0.05;
+
+    noise.start(startTime);
+    musicNodes.push(noise);
+  }
+
+  // DnB breakbeat pattern (amen-style)
+  // Pattern: K---S--K--S-K-S- (16 sixteenths per bar)
+  const drumPattern = [
+    { type: 'kick', pos: 0 },
+    { type: 'snare', pos: 4 },
+    { type: 'kick', pos: 8 },
+    { type: 'kick', pos: 10 },
+    { type: 'snare', pos: 12 },
+    { type: 'kick', pos: 14 },
+    // Second bar variation
+    { type: 'kick', pos: 16 },
+    { type: 'snare', pos: 20 },
+    { type: 'kick', pos: 22 },
+    { type: 'snare', pos: 24 },
+    { type: 'kick', pos: 26 },
+    { type: 'snare', pos: 28 },
+    { type: 'kick', pos: 30 }
+  ];
+
+  const loopDuration = beatMs * 8;
+  let loopCount = 0;
+
+  function playLoop() {
+    if (currentTrack !== 'dnb') return;
+
+    const now = ctx.currentTime;
+
+    // Bass
+    bassPattern.forEach(b => {
+      playReeseBass(b.note, now + (b.time * beatMs / 1000), b.dur * (beatMs / 1000));
+    });
+
+    // Synth stabs
+    stabPattern.forEach(s => {
+      playStab(s.notes, now + (s.time * beatMs / 1000), s.dur * (beatMs / 1000) * 2);
+    });
+
+    // Melody (every other loop for variation)
+    if (loopCount % 2 === 0) {
+      melodyPattern.forEach(m => {
+        playLead8bit(m.note, now + (m.time * beatMs / 1000), m.dur * (beatMs / 1000));
+      });
+    }
+
+    // Coin arpeggios
+    coinArp.forEach(c => {
+      playCoin(c.note, now + (c.time * beatMs / 1000));
+    });
+
+    // Drums - 32 sixteenths (8 beats)
+    drumPattern.forEach(d => {
+      const time = now + (d.pos * sixteenth / 1000);
+      if (d.type === 'kick') playKick(time);
+      else if (d.type === 'snare') playSnare(time);
+    });
+
+    // Hi-hats (every other 16th with some variation)
+    for (let i = 0; i < 32; i++) {
+      if (i % 2 === 0 || Math.random() > 0.6) {
+        const open = (i % 8 === 6);
+        playHat(now + (i * sixteenth / 1000), open);
+      }
+    }
+
+    loopCount++;
+  }
+
+  playLoop();
+  musicInterval = setInterval(playLoop, loopDuration);
+}
+
 function setMusic(track) {
   stopMusic();
   currentTrack = track;
@@ -446,6 +790,9 @@ function setMusic(track) {
       break;
     case 'casino':
       playCasinoMusic();
+      break;
+    case 'dnb':
+      playDnBMusic();
       break;
   }
 }
