@@ -28,6 +28,213 @@ function getAudioContext() {
   return audioContext;
 }
 
+// Background Music System
+let currentTrack = 'none';
+let musicNodes = [];
+let musicInterval = null;
+
+function stopMusic() {
+  musicNodes.forEach(node => {
+    try {
+      node.stop();
+    } catch (e) {}
+  });
+  musicNodes = [];
+  if (musicInterval) {
+    clearInterval(musicInterval);
+    musicInterval = null;
+  }
+  const musicBtn = document.getElementById('music-btn');
+  if (musicBtn) musicBtn.classList.remove('playing');
+}
+
+function playChillMusic() {
+  const ctx = getAudioContext();
+  const masterGain = ctx.createGain();
+  masterGain.gain.value = 0.15;
+  masterGain.connect(ctx.destination);
+
+  // Soft pad chord
+  const chords = [
+    [261.63, 329.63, 392.00], // C major
+    [293.66, 369.99, 440.00], // D minor
+    [349.23, 440.00, 523.25], // F major
+    [392.00, 493.88, 587.33]  // G major
+  ];
+  let chordIndex = 0;
+
+  function playChord() {
+    const chord = chords[chordIndex % chords.length];
+    chord.forEach(freq => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      filter.type = 'lowpass';
+      filter.frequency.value = 800;
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.5);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 4);
+
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 4);
+      musicNodes.push(osc);
+    });
+    chordIndex++;
+  }
+
+  playChord();
+  musicInterval = setInterval(playChord, 4000);
+}
+
+function playAmbientMusic() {
+  const ctx = getAudioContext();
+  const masterGain = ctx.createGain();
+  masterGain.gain.value = 0.1;
+  masterGain.connect(ctx.destination);
+
+  // Ethereal drone
+  const baseFreqs = [110, 165, 220, 330];
+
+  function createDrone() {
+    baseFreqs.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+
+      // Slow frequency modulation
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.frequency.value = 0.1 + (i * 0.05);
+      lfoGain.gain.value = freq * 0.02;
+      lfo.connect(lfoGain);
+      lfoGain.connect(osc.frequency);
+
+      filter.type = 'lowpass';
+      filter.frequency.value = 400;
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 3);
+      gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 12);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 15);
+
+      lfo.start(ctx.currentTime);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 15);
+      lfo.stop(ctx.currentTime + 15);
+      musicNodes.push(osc, lfo);
+    });
+  }
+
+  createDrone();
+  musicInterval = setInterval(createDrone, 14000);
+}
+
+function playCasinoMusic() {
+  const ctx = getAudioContext();
+  const masterGain = ctx.createGain();
+  masterGain.gain.value = 0.12;
+  masterGain.connect(ctx.destination);
+
+  // Upbeat jazzy pattern
+  const notes = [392, 440, 494, 523, 587, 659, 698, 784];
+  let beatIndex = 0;
+
+  function playBeat() {
+    const time = ctx.currentTime;
+
+    // Bass note
+    const bass = ctx.createOscillator();
+    const bassGain = ctx.createGain();
+    bass.type = 'triangle';
+    bass.frequency.value = notes[beatIndex % 4] / 4;
+    bass.connect(bassGain);
+    bassGain.connect(masterGain);
+    bassGain.gain.setValueAtTime(0.4, time);
+    bassGain.gain.exponentialRampToValueAtTime(0.01, time + 0.3);
+    bass.start(time);
+    bass.stop(time + 0.3);
+    musicNodes.push(bass);
+
+    // Melody note (syncopated)
+    setTimeout(() => {
+      if (currentTrack !== 'casino') return;
+      const mel = ctx.createOscillator();
+      const melGain = ctx.createGain();
+      mel.type = 'square';
+      mel.frequency.value = notes[(beatIndex + 2) % notes.length];
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 1500;
+
+      mel.connect(filter);
+      filter.connect(melGain);
+      melGain.connect(masterGain);
+      melGain.gain.setValueAtTime(0.15, ctx.currentTime);
+      melGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+      mel.start(ctx.currentTime);
+      mel.stop(ctx.currentTime + 0.15);
+      musicNodes.push(mel);
+    }, 150);
+
+    beatIndex++;
+  }
+
+  playBeat();
+  musicInterval = setInterval(playBeat, 400);
+}
+
+function setMusic(track) {
+  stopMusic();
+  currentTrack = track;
+
+  // Update UI
+  document.querySelectorAll('.music-option').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.track === track);
+  });
+
+  const musicBtn = document.getElementById('music-btn');
+
+  if (track === 'none') {
+    return;
+  }
+
+  if (musicBtn) musicBtn.classList.add('playing');
+
+  // Need user interaction to start audio
+  const ctx = getAudioContext();
+  if (ctx.state === 'suspended') {
+    ctx.resume();
+  }
+
+  switch (track) {
+    case 'chill':
+      playChillMusic();
+      break;
+    case 'ambient':
+      playAmbientMusic();
+      break;
+    case 'casino':
+      playCasinoMusic();
+      break;
+  }
+}
+
 function playTone(frequency, duration, type = 'sine', volume = 0.3) {
   if (!soundEnabled) return;
   const ctx = getAudioContext();
@@ -879,7 +1086,7 @@ function showLoading() {
     // Show help after 6 seconds if still loading
     loadingHelpTimeout = setTimeout(() => {
       loadingHelp.classList.remove('hidden');
-    }, 6000);
+    }, 9000);
   }
 }
 
@@ -932,6 +1139,38 @@ document.addEventListener('DOMContentLoaded', () => {
   if (logoutBtn) logoutBtn.addEventListener('click', logout);
   if (soundBtn) soundBtn.addEventListener('click', toggleSound);
 
+  // Music controls
+  const musicBtn = document.getElementById('music-btn');
+  const musicMenu = document.getElementById('music-menu');
+  const musicOptions = document.querySelectorAll('.music-option');
+
+  if (musicBtn && musicMenu) {
+    musicBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      musicMenu.classList.toggle('hidden');
+    });
+  }
+
+  if (musicOptions) {
+    musicOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        const track = option.dataset.track;
+        setMusic(track);
+        // Update active state
+        musicOptions.forEach(opt => opt.classList.remove('active'));
+        option.classList.add('active');
+        // Update button state
+        if (musicBtn) {
+          musicBtn.classList.toggle('playing', track !== 'none');
+        }
+        // Hide menu
+        if (musicMenu) {
+          musicMenu.classList.add('hidden');
+        }
+      });
+    });
+  }
+
   // Cancel sign button
   const cancelSignBtn = document.getElementById('cancel-sign-btn');
   if (cancelSignBtn) {
@@ -943,12 +1182,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Close menu when clicking outside
+  // Close menus when clicking outside
   document.addEventListener('click', (e) => {
     const accountMenu = document.getElementById('account-menu');
     const walletContainer = document.querySelector('.wallet-container');
     if (accountMenu && walletContainer && !walletContainer.contains(e.target)) {
       accountMenu.classList.add('hidden');
+    }
+    // Close music menu when clicking outside
+    const musicSelector = document.querySelector('.music-selector');
+    const musicMenuEl = document.getElementById('music-menu');
+    if (musicMenuEl && musicSelector && !musicSelector.contains(e.target)) {
+      musicMenuEl.classList.add('hidden');
     }
   });
   initReels();

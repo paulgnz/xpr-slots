@@ -473,11 +473,82 @@
             box-shadow: 0 0 20px rgba(138, 43, 226, 0.3);
         }
 
-        #sound-btn:hover {
+        #sound-btn:hover,
+        #music-btn:hover {
             background: rgba(50, 25, 80, 0.9);
             border-color: #ffd700;
             box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
             transform: scale(1.1);
+        }
+
+        /* Music Selector */
+        .music-selector {
+            position: relative;
+        }
+
+        #music-btn {
+            background: rgba(30, 15, 60, 0.8);
+            border: 2px solid rgba(138, 43, 226, 0.5);
+            color: white;
+            font-size: 1.5rem;
+            padding: 10px 15px;
+            min-width: auto;
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.3);
+        }
+
+        #music-btn.playing {
+            border-color: #00ffaa;
+            box-shadow: 0 0 20px rgba(0, 255, 170, 0.4);
+            animation: musicPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes musicPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .music-menu {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 15, 60, 0.95);
+            border-radius: 15px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            min-width: 100px;
+        }
+
+        .music-menu.hidden {
+            display: none;
+        }
+
+        .music-option {
+            padding: 10px 15px;
+            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .music-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .music-option.active {
+            background: rgba(0, 255, 170, 0.3);
+            border-color: #00ffaa;
+            color: #00ffaa;
         }
 
         /* Account Menu */
@@ -892,6 +963,98 @@
             50% { opacity: 1; transform: scale(1); }
         }
 
+        /* Odds Section */
+        .odds-section {
+            margin-top: 40px;
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .odds-section h2 {
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            margin-bottom: 15px;
+            color: #8866ff;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+        }
+
+        .odds-intro {
+            text-align: center;
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .odds-intro a {
+            color: #66aaff;
+            text-decoration: underline;
+        }
+
+        .odds-table {
+            background: linear-gradient(145deg, rgba(40, 20, 80, 0.5), rgba(20, 10, 40, 0.7));
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+        }
+
+        .odds-category {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(138, 43, 226, 0.2);
+        }
+
+        .odds-category:last-child {
+            border-bottom: none;
+        }
+
+        .odds-category h4 {
+            color: #8866ff;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .odds-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .odds-row:last-child {
+            border-bottom: none;
+        }
+
+        .odds-value {
+            font-family: 'Orbitron', sans-serif;
+            color: #00ffaa;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .odds-row.jackpot-odds {
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent);
+            margin: 0 -20px;
+            padding: 8px 20px;
+        }
+
+        .odds-row.jackpot-odds .odds-value {
+            color: #ffd700;
+        }
+
+        .odds-note {
+            text-align: center;
+            color: #666;
+            font-size: 0.75rem;
+            margin-top: 15px;
+            font-style: italic;
+        }
+
         /* Mobile Responsive Styles */
         @media (max-width: 768px) {
             #app {
@@ -1060,10 +1223,48 @@
             }
 
             .payout-section,
+            .odds-section,
             .stats-section,
             .recent-spins {
                 margin-top: 25px;
                 max-width: 100%;
+            }
+
+            .odds-section h2 {
+                font-size: 1rem;
+            }
+
+            .odds-intro {
+                font-size: 0.75rem;
+                padding: 0 10px;
+            }
+
+            .odds-category {
+                padding: 12px 15px;
+            }
+
+            .odds-category h4 {
+                font-size: 0.7rem;
+            }
+
+            .odds-row {
+                font-size: 0.75rem;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+            .odds-value {
+                font-size: 0.7rem;
+            }
+
+            .odds-row.jackpot-odds {
+                margin: 0 -15px;
+                padding: 8px 15px;
+            }
+
+            .odds-note {
+                font-size: 0.65rem;
+                padding: 0 10px;
             }
 
             .payout-section h2,
@@ -1233,6 +1434,15 @@
 
             <div class="controls">
                 <button id="sound-btn" title="Mute sounds">🔊</button>
+                <div class="music-selector">
+                    <button id="music-btn" title="Background music">🎵</button>
+                    <div id="music-menu" class="music-menu hidden">
+                        <button class="music-option" data-track="none">Off</button>
+                        <button class="music-option" data-track="chill">Chill</button>
+                        <button class="music-option" data-track="ambient">Ambient</button>
+                        <button class="music-option" data-track="casino">Casino</button>
+                    </div>
+                </div>
                 <div class="wallet-container">
                     <button id="connect-btn">Connect Wallet</button>
                     <div id="account-menu" class="account-menu hidden">
@@ -1271,6 +1481,87 @@
                     <span class="payout">0.5x bet</span>
                 </div>
             </div>
+        </div>
+
+        <div class="odds-section">
+            <h2>PROVABLY FAIR ODDS</h2>
+            <p class="odds-intro">All odds are verifiable in the <a href="https://github.com/paulgnz/xpr-slots/blob/main/contract/assembly/index.ts" target="_blank">open source smart contract</a>. Results use <a href="https://docs.xprnetwork.org/contract-sdk/rng" target="_blank">XPR Network's RNG oracle</a> for provably fair randomness.</p>
+            <div class="odds-table">
+                <div class="odds-category">
+                    <h4>Symbol Distribution (Per Reel)</h4>
+                    <div class="odds-row">
+                        <span>🍋 Lemon</span>
+                        <span class="odds-value">32% (40/125)</span>
+                    </div>
+                    <div class="odds-row">
+                        <span>🍒 Cherry</span>
+                        <span class="odds-value">24% (30/125)</span>
+                    </div>
+                    <div class="odds-row">
+                        <span>🔔 Bell</span>
+                        <span class="odds-value">20% (25/125)</span>
+                    </div>
+                    <div class="odds-row">
+                        <span>📊 Bar</span>
+                        <span class="odds-value">16% (20/125)</span>
+                    </div>
+                    <div class="odds-row">
+                        <span>7️⃣ Seven</span>
+                        <span class="odds-value">8% (10/125)</span>
+                    </div>
+                </div>
+                <div class="odds-category">
+                    <h4>Win Probabilities</h4>
+                    <div class="odds-row">
+                        <span>🍋🍋🍋 Three Lemons (1.5x)</span>
+                        <span class="odds-value">3.28%</span>
+                    </div>
+                    <div class="odds-row">
+                        <span>🍒🍒🍒 Three Cherries (5x)</span>
+                        <span class="odds-value">1.38%</span>
+                    </div>
+                    <div class="odds-row">
+                        <span>🔔🔔🔔 Three Bells (2x)</span>
+                        <span class="odds-value">0.80%</span>
+                    </div>
+                    <div class="odds-row">
+                        <span>📊📊📊 Three Bars (3x)</span>
+                        <span class="odds-value">0.41%</span>
+                    </div>
+                    <div class="odds-row jackpot-odds">
+                        <span>7️⃣7️⃣7️⃣ JACKPOT</span>
+                        <span class="odds-value">0.051%</span>
+                    </div>
+                    <div class="odds-row">
+                        <span>Any Two Matching (0.5x)</span>
+                        <span class="odds-value">~39%</span>
+                    </div>
+                </div>
+                <div class="odds-category">
+                    <h4>House Edge & Distribution</h4>
+                    <div class="odds-row">
+                        <span>House Edge</span>
+                        <span class="odds-value">5%</span>
+                    </div>
+                    <div class="odds-row">
+                        <span>Jackpot Contribution</span>
+                        <span class="odds-value">10% of each bet</span>
+                    </div>
+                    <div class="odds-row">
+                        <span>Minimum Bet</span>
+                        <span class="odds-value">1 XPR</span>
+                    </div>
+                    <div class="odds-row">
+                        <span>Maximum Bet</span>
+                        <span class="odds-value">1,000 XPR</span>
+                    </div>
+                    <div class="odds-row">
+                        <span>Min Jackpot Payout</span>
+                        <span class="odds-value">10,000 XPR</span>
+                    </div>
+                </div>
+            </div>
+            <p class="odds-note">Three-of-a-kind probabilities = (symbol%)³. Two-matching includes any spin with exactly 2 identical symbols.</p>
         </div>
 
         <div class="stats-section">
