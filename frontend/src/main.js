@@ -491,46 +491,59 @@ function playDnBMusic() {
     { note: NOTE.G5, time: 7, dur: 0.75 }
   ];
 
-  // Reese bass with wobble
+  // Reese bass with wobble + sub bass
   function playReeseBass(freq, startTime, duration) {
     const osc1 = ctx.createOscillator();
     const osc2 = ctx.createOscillator();
+    const subOsc = ctx.createOscillator(); // Sub bass layer
     const gain = ctx.createGain();
+    const subGain = ctx.createGain();
     const filter = ctx.createBiquadFilter();
 
     // LFO for wobble
     const lfo = ctx.createOscillator();
     const lfoGain = ctx.createGain();
     lfo.frequency.value = 4 + Math.random() * 2; // Wobble speed
-    lfoGain.gain.value = 300;
+    lfoGain.gain.value = 400;
     lfo.connect(lfoGain);
     lfoGain.connect(filter.frequency);
 
+    // Main reese oscillators
     osc1.type = 'sawtooth';
     osc2.type = 'sawtooth';
     osc1.frequency.value = freq;
-    osc2.frequency.value = freq * 1.005; // Detune for thickness
+    osc2.frequency.value = freq * 1.008; // More detune for thickness
+
+    // Sub bass - pure sine one octave down
+    subOsc.type = 'sine';
+    subOsc.frequency.value = freq / 2;
+    subOsc.connect(subGain);
+    subGain.connect(masterGain);
+    subGain.gain.setValueAtTime(0.5, startTime);
+    subGain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
 
     filter.type = 'lowpass';
-    filter.frequency.value = 600;
-    filter.Q.value = 8;
+    filter.frequency.value = 800;
+    filter.Q.value = 6;
 
     osc1.connect(filter);
     osc2.connect(filter);
     filter.connect(gain);
     gain.connect(masterGain);
 
-    gain.gain.setValueAtTime(0.4, startTime);
-    gain.gain.setValueAtTime(0.35, startTime + 0.05);
+    gain.gain.setValueAtTime(0.55, startTime);
+    gain.gain.setValueAtTime(0.45, startTime + 0.05);
     gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
 
     lfo.start(startTime);
     osc1.start(startTime);
     osc2.start(startTime);
+    subOsc.start(startTime);
     lfo.stop(startTime + duration);
     osc1.stop(startTime + duration);
     osc2.stop(startTime + duration);
-    musicNodes.push(osc1, osc2, lfo);
+    subOsc.stop(startTime + duration);
+    musicNodes.push(osc1, osc2, subOsc, lfo);
   }
 
   // Punchy synth stab
@@ -601,24 +614,37 @@ function playDnBMusic() {
     musicNodes.push(osc);
   }
 
-  // DnB breakbeat kick
+  // DnB breakbeat kick - punchy with sub
   function playKick(startTime) {
+    // Main kick body
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(150, startTime);
-    osc.frequency.exponentialRampToValueAtTime(40, startTime + 0.1);
+    osc.frequency.setValueAtTime(170, startTime);
+    osc.frequency.exponentialRampToValueAtTime(35, startTime + 0.12);
 
     osc.connect(gain);
     gain.connect(masterGain);
 
-    gain.gain.setValueAtTime(0.5, startTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.15);
+    gain.gain.setValueAtTime(0.7, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.2);
+
+    // Click transient for punch
+    const click = ctx.createOscillator();
+    const clickGain = ctx.createGain();
+    click.type = 'square';
+    click.frequency.value = 1000;
+    click.connect(clickGain);
+    clickGain.connect(masterGain);
+    clickGain.gain.setValueAtTime(0.15, startTime);
+    clickGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.015);
 
     osc.start(startTime);
-    osc.stop(startTime + 0.15);
-    musicNodes.push(osc);
+    click.start(startTime);
+    osc.stop(startTime + 0.2);
+    click.stop(startTime + 0.015);
+    musicNodes.push(osc, click);
   }
 
   // Snappy snare
