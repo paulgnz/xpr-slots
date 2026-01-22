@@ -221,10 +221,13 @@ proton action xprslots cleanup '{"maxGames":10}' xprslots@owner
 - Social meta tags (og:image)
 - Fixed small amount display (0.5 XPR was showing as 0)
 - Fixed logout button event listener
+- Deposited 2,500 XPR to cover RAM purchase accounting gap
+- Deposited 10,000 XPR buffer to protect jackpot reserve from regular payouts
 
 ### Known Issues / TODO
 - No admin action to adjust internal balances (jackpotPool/houseBalance) - must deposit to correct any discrepancies
 - Consider adding `adjustbalance` action for accounting corrections after RAM purchases
+- **IMPORTANT:** `getAvailableBalance()` does not reserve jackpot pool - regular payouts can theoretically drain below jackpot. Mitigated by maintaining 10k+ XPR buffer above jackpot. Proper fix: modify function to return `totalBalance - jackpotPool`
 
 ---
 
