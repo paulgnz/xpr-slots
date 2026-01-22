@@ -32,6 +32,28 @@ function getAudioContext() {
 let currentTrack = 'none';
 let musicNodes = [];
 let musicInterval = null;
+let musicMasterGain = null; // Global gain for ducking
+
+function getMusicMasterGain() {
+  if (!musicMasterGain) {
+    const ctx = getAudioContext();
+    musicMasterGain = ctx.createGain();
+    musicMasterGain.gain.value = 1.0;
+    musicMasterGain.connect(ctx.destination);
+  }
+  return musicMasterGain;
+}
+
+// Duck music volume temporarily for win sounds
+function duckMusic(duration = 1.5) {
+  if (!musicMasterGain) return;
+  const ctx = getAudioContext();
+  const now = ctx.currentTime;
+  musicMasterGain.gain.cancelScheduledValues(now);
+  musicMasterGain.gain.setValueAtTime(musicMasterGain.gain.value, now);
+  musicMasterGain.gain.linearRampToValueAtTime(0.15, now + 0.05); // Duck to 15%
+  musicMasterGain.gain.linearRampToValueAtTime(1.0, now + duration); // Fade back up
+}
 
 function stopMusic() {
   musicNodes.forEach(node => {
@@ -52,7 +74,7 @@ function playChillMusic() {
   const ctx = getAudioContext();
   const masterGain = ctx.createGain();
   masterGain.gain.value = 0.15;
-  masterGain.connect(ctx.destination);
+  masterGain.connect(getMusicMasterGain());
 
   // Soft pad chord
   const chords = [
@@ -98,7 +120,7 @@ function playAmbientMusic() {
   const ctx = getAudioContext();
   const masterGain = ctx.createGain();
   masterGain.gain.value = 0.1;
-  masterGain.connect(ctx.destination);
+  masterGain.connect(getMusicMasterGain());
 
   // Ethereal drone
   const baseFreqs = [110, 165, 220, 330];
@@ -155,7 +177,7 @@ function playCasinoMusic() {
   compressor.knee.value = 10;
   compressor.ratio.value = 4;
   masterGain.connect(compressor);
-  compressor.connect(ctx.destination);
+  compressor.connect(getMusicMasterGain());
 
   // Tempo: 125 BPM (480ms per beat) - upbeat casino groove
   const BPM = 125;
@@ -427,7 +449,7 @@ function playDnBMusic() {
   compressor.attack.value = 0.003;
   compressor.release.value = 0.1;
   masterGain.connect(compressor);
-  compressor.connect(ctx.destination);
+  compressor.connect(getMusicMasterGain());
 
   // DnB tempo: 174 BPM
   const BPM = 174;
@@ -897,94 +919,195 @@ function playWinSound() {
   });
 }
 
-// Different sounds for different win types
-function playThreeCherriesSound() {
-  // Big win! Bright, exciting fanfare
-  const notes = [659, 784, 880, 1047, 1319]; // E5, G5, A5, C6, E6
-  notes.forEach((freq, i) => {
-    setTimeout(() => {
-      playTone(freq, 0.25, 'sine', 0.22);
-      playTone(freq * 0.5, 0.25, 'triangle', 0.12);
-    }, i * 80);
-  });
-  // Sparkle effect
-  for (let i = 0; i < 8; i++) {
-    setTimeout(() => playTone(1500 + Math.random() * 1500, 0.08, 'sine', 0.06), 300 + i * 60);
-  }
-}
-
-function playThreeBarsSound() {
-  // Medium-big win - punchy triumphant sound
-  const notes = [392, 494, 587, 784]; // G4, B4, D5, G5
-  notes.forEach((freq, i) => {
-    setTimeout(() => {
-      playTone(freq, 0.2, 'square', 0.15);
-      playTone(freq * 2, 0.15, 'sine', 0.08);
-    }, i * 90);
-  });
-}
-
-function playThreeBellsSound() {
-  // Bell-like chime for bells win
-  const notes = [880, 1109, 1319]; // A5, C#6, E6 - bright chord
-  notes.forEach((freq, i) => {
-    setTimeout(() => {
-      playTone(freq, 0.4, 'sine', 0.18);
-      playTone(freq * 2, 0.3, 'sine', 0.06);
-    }, i * 50);
-  });
-}
-
-function playThreeLemonsSound() {
-  // Smaller win - cheerful quick melody
-  const notes = [523, 587, 659]; // C5, D5, E5
-  notes.forEach((freq, i) => {
-    setTimeout(() => {
-      playTone(freq, 0.15, 'sine', 0.15);
-    }, i * 70);
-  });
-}
-
+// Different sounds for different win types - progressively more exciting
+// Two Match (0.5x) - quick happy jingle
 function playTwoMatchSound() {
-  // Small win but still exciting - quick celebratory jingle
+  if (!soundEnabled) return;
+  duckMusic(0.8);
   const notes = [523, 659, 784, 880]; // C5, E5, G5, A5
   notes.forEach((freq, i) => {
     setTimeout(() => {
-      playTone(freq, 0.12, 'sine', 0.15);
-      playTone(freq * 1.5, 0.1, 'triangle', 0.06);
-    }, i * 50);
+      playTone(freq, 0.15, 'sine', 0.35);
+      playTone(freq * 2, 0.1, 'sine', 0.15);
+    }, i * 45);
   });
-  // Add a little shimmer
-  setTimeout(() => playTone(1200, 0.08, 'sine', 0.05), 180);
-  setTimeout(() => playTone(1400, 0.08, 'sine', 0.05), 220);
+  // Coin shimmer
+  setTimeout(() => playTone(1400, 0.1, 'sine', 0.2), 160);
+  setTimeout(() => playTone(1800, 0.1, 'sine', 0.15), 200);
 }
 
-function playJackpotSound() {
-  // Epic celebration fanfare
+// Three Lemons (1.5x) - cheerful celebration
+function playThreeLemonsSound() {
+  if (!soundEnabled) return;
+  duckMusic(1.2);
+  const notes = [523, 659, 784, 1047, 1319]; // C5, E5, G5, C6, E6
+  notes.forEach((freq, i) => {
+    setTimeout(() => {
+      playTone(freq, 0.25, 'sine', 0.4);
+      playTone(freq * 0.5, 0.2, 'triangle', 0.2);
+    }, i * 70);
+  });
+  // Victory sparkles
+  for (let i = 0; i < 6; i++) {
+    setTimeout(() => playTone(1200 + Math.random() * 1200, 0.12, 'sine', 0.15), 300 + i * 50);
+  }
+}
+
+// Three Bells (2x) - triumphant bell chorus
+function playThreeBellsSound() {
+  if (!soundEnabled) return;
+  duckMusic(1.5);
+  // Big bell chord
+  const bellChord = [880, 1109, 1319, 1760]; // A5, C#6, E6, A6
+  bellChord.forEach((freq, i) => {
+    setTimeout(() => {
+      playTone(freq, 0.5, 'sine', 0.4);
+      playTone(freq * 2, 0.4, 'sine', 0.15);
+    }, i * 40);
+  });
+  // Ascending celebration
+  const celebration = [523, 659, 784, 1047, 1319, 1568];
+  celebration.forEach((freq, i) => {
+    setTimeout(() => {
+      playTone(freq, 0.15, 'square', 0.2);
+    }, 200 + i * 60);
+  });
+  // Shimmer
+  for (let i = 0; i < 10; i++) {
+    setTimeout(() => playTone(1500 + Math.random() * 1500, 0.1, 'sine', 0.12), 500 + i * 60);
+  }
+}
+
+// Three Bars (3x) - powerful triumphant fanfare
+function playThreeBarsSound() {
+  if (!soundEnabled) return;
+  duckMusic(1.8);
+  // Power chord hit
+  [196, 294, 392, 494].forEach((freq, i) => {
+    setTimeout(() => {
+      playTone(freq, 0.4, 'sawtooth', 0.35);
+      playTone(freq * 2, 0.35, 'square', 0.2);
+    }, i * 30);
+  });
+  // Triumphant melody
+  const melody = [392, 494, 587, 784, 988, 1175];
+  melody.forEach((freq, i) => {
+    setTimeout(() => {
+      playTone(freq, 0.2, 'square', 0.3);
+      playTone(freq * 1.5, 0.15, 'sine', 0.15);
+    }, 150 + i * 80);
+  });
+  // Epic sparkle cascade
+  for (let i = 0; i < 15; i++) {
+    setTimeout(() => playTone(1000 + Math.random() * 2000, 0.12, 'sine', 0.15), 600 + i * 50);
+  }
+}
+
+// Three Cherries (5x) - BIG WIN fanfare!
+function playThreeCherriesSound() {
+  if (!soundEnabled) return;
+  duckMusic(2.5);
+  // Epic opening chord
+  [262, 330, 392, 523, 659, 784].forEach((freq, i) => {
+    setTimeout(() => {
+      playTone(freq, 0.5, 'sawtooth', 0.4);
+      playTone(freq * 2, 0.4, 'sine', 0.2);
+    }, i * 20);
+  });
+  // Victory fanfare melody
   const fanfare = [
-    { freq: 523, delay: 0 },
-    { freq: 659, delay: 100 },
-    { freq: 784, delay: 200 },
-    { freq: 1047, delay: 300 },
-    { freq: 1319, delay: 400 },
-    { freq: 1047, delay: 600 },
-    { freq: 1319, delay: 700 },
-    { freq: 1568, delay: 800 },
+    { freq: 784, delay: 100 },
+    { freq: 988, delay: 200 },
+    { freq: 1175, delay: 300 },
+    { freq: 1568, delay: 450 },
+    { freq: 1319, delay: 600 },
+    { freq: 1568, delay: 700 },
+    { freq: 1976, delay: 850 },
+  ];
+  fanfare.forEach(note => {
+    setTimeout(() => {
+      playTone(note.freq, 0.35, 'square', 0.35);
+      playTone(note.freq * 0.5, 0.3, 'triangle', 0.2);
+      playTone(note.freq * 2, 0.25, 'sine', 0.15);
+    }, note.delay);
+  });
+  // Coin rain effect
+  for (let i = 0; i < 25; i++) {
+    setTimeout(() => {
+      playTone(1500 + Math.random() * 2500, 0.08, 'sine', 0.18);
+    }, 400 + i * 40);
+  }
+  // Final triumphant hits
+  setTimeout(() => {
+    playTone(523, 0.6, 'sawtooth', 0.4);
+    playTone(1047, 0.5, 'sine', 0.3);
+  }, 1100);
+}
+
+// JACKPOT - Maximum hype!!!
+function playJackpotSound() {
+  if (!soundEnabled) return;
+  duckMusic(5); // Duck music for 5 seconds
+
+  // MASSIVE opening chord
+  [131, 165, 196, 262, 330, 392, 523, 659, 784].forEach((freq, i) => {
+    setTimeout(() => {
+      playTone(freq, 0.8, 'sawtooth', 0.5);
+      playTone(freq * 2, 0.6, 'sine', 0.3);
+    }, i * 15);
+  });
+
+  // Epic fanfare melody
+  const fanfare = [
+    { freq: 784, delay: 150 },
+    { freq: 988, delay: 300 },
+    { freq: 1175, delay: 450 },
+    { freq: 1568, delay: 600 },
+    { freq: 1319, delay: 800 },
+    { freq: 1568, delay: 950 },
+    { freq: 1976, delay: 1100 },
+    { freq: 2093, delay: 1300 },
+    { freq: 1568, delay: 1500 },
+    { freq: 1976, delay: 1650 },
+    { freq: 2637, delay: 1850 },
   ];
 
   fanfare.forEach(note => {
     setTimeout(() => {
-      playTone(note.freq, 0.4, 'sine', 0.25);
-      playTone(note.freq * 0.5, 0.4, 'triangle', 0.15);
-      playTone(note.freq * 2, 0.2, 'sine', 0.1);
+      playTone(note.freq, 0.45, 'square', 0.45);
+      playTone(note.freq * 0.5, 0.4, 'sawtooth', 0.25);
+      playTone(note.freq * 2, 0.3, 'sine', 0.2);
     }, note.delay);
   });
 
-  // Add shimmer effect
-  for (let i = 0; i < 20; i++) {
+  // Massive coin explosion
+  for (let i = 0; i < 50; i++) {
     setTimeout(() => {
-      playTone(2000 + Math.random() * 2000, 0.1, 'sine', 0.05);
-    }, 400 + i * 80);
+      playTone(1000 + Math.random() * 3000, 0.1, 'sine', 0.2);
+    }, 300 + i * 50);
+  }
+
+  // Repeating victory hits
+  [2000, 2400, 2800, 3200].forEach(delay => {
+    setTimeout(() => {
+      playTone(523, 0.5, 'sawtooth', 0.45);
+      playTone(784, 0.4, 'square', 0.35);
+      playTone(1047, 0.35, 'sine', 0.3);
+    }, delay);
+  });
+
+  // Final sustained triumph chord
+  setTimeout(() => {
+    [262, 330, 392, 523, 659, 784, 1047].forEach(freq => {
+      playTone(freq, 1.5, 'sine', 0.35);
+    });
+  }, 3500);
+
+  // Endless sparkle fade
+  for (let i = 0; i < 40; i++) {
+    setTimeout(() => {
+      playTone(2000 + Math.random() * 2000, 0.15, 'sine', 0.1 * (1 - i / 40));
+    }, 3800 + i * 40);
   }
 }
 
