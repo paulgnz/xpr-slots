@@ -444,7 +444,7 @@ async function logout() {
   connectBtn.textContent = 'Connect Wallet';
   connectBtn.onclick = connectWallet;
   spinBtn.disabled = true;
-  balanceValue.textContent = '-- XPR';
+  balanceValue.textContent = '0 XPR';
 
   const accountMenu = document.getElementById('account-menu');
   if (accountMenu) {
@@ -492,7 +492,12 @@ async function updateBalance() {
     });
 
     const xprBalance = result.rows.find(row => row.balance?.includes('XPR'));
-    balanceValue.textContent = xprBalance ? xprBalance.balance : '0.0000 XPR';
+    if (xprBalance) {
+      const amount = Math.floor(parseFloat(xprBalance.balance));
+      balanceValue.textContent = amount.toLocaleString() + ' XPR';
+    } else {
+      balanceValue.textContent = '0 XPR';
+    }
   } catch (error) {
     console.error('Error fetching balance:', error);
   }
@@ -739,8 +744,8 @@ function createWinExplosion() {
 }
 
 function formatXPR(amount) {
-  const xprAmount = Number(amount) / 10000;
-  return xprAmount.toFixed(4) + ' XPR';
+  const xprAmount = Math.floor(Number(amount) / 10000);
+  return xprAmount.toLocaleString() + ' XPR';
 }
 
 function showResult(message, type = 'normal') {
