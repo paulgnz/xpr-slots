@@ -444,7 +444,7 @@ async function connectWallet() {
       },
       selectorOptions: {
         appName: CONFIG.appName,
-        appLogo: 'https://xprnetwork.org/images/xpr-logo.svg'
+        appLogo: `${window.location.origin}/avatar.png`
       }
     });
 
