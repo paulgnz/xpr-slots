@@ -573,9 +573,17 @@ function playThreeLemonsSound() {
 }
 
 function playTwoMatchSound() {
-  // Tiny win - simple two-tone acknowledgment
-  playTone(440, 0.1, 'sine', 0.12);
-  setTimeout(() => playTone(554, 0.15, 'sine', 0.1), 80);
+  // Small win but still exciting - quick celebratory jingle
+  const notes = [523, 659, 784, 880]; // C5, E5, G5, A5
+  notes.forEach((freq, i) => {
+    setTimeout(() => {
+      playTone(freq, 0.12, 'sine', 0.15);
+      playTone(freq * 1.5, 0.1, 'triangle', 0.06);
+    }, i * 50);
+  });
+  // Add a little shimmer
+  setTimeout(() => playTone(1200, 0.08, 'sine', 0.05), 180);
+  setTimeout(() => playTone(1400, 0.08, 'sine', 0.05), 220);
 }
 
 function playJackpotSound() {
