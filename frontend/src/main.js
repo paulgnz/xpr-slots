@@ -232,6 +232,7 @@ rpc = new JsonRpc(CONFIG.endpoints[0]);
 // DOM Elements
 const connectBtn = document.getElementById('connect-btn');
 const spinBtn = document.getElementById('spin-btn');
+const spinBtnMobile = document.getElementById('spin-btn-mobile');
 const resultDisplay = document.getElementById('result-display');
 const balanceValue = document.getElementById('balance-value');
 const jackpotValue = document.getElementById('jackpot-value');

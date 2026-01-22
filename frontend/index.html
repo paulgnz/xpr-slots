@@ -385,15 +385,40 @@
                 0 0 80px rgba(255, 215, 0, 0.5);
         }
 
-        #spin-btn:disabled {
+        #spin-btn:disabled,
+        #spin-btn-mobile:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
             animation: none;
         }
 
-        #spin-btn.spinning {
+        #spin-btn.spinning,
+        #spin-btn-mobile.spinning {
             animation: spinBtnSpin 0.5s linear infinite;
+        }
+
+        /* Mobile spin button - hidden on desktop */
+        .spin-btn-mobile {
+            display: none;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #ffd700 100%);
+            background-size: 200% 200%;
+            color: #1a0a2e;
+            font-size: 1.2rem;
+            padding: 20px 60px;
+            box-shadow:
+                0 4px 30px rgba(245, 87, 108, 0.5),
+                0 0 60px rgba(255, 215, 0, 0.3);
+            animation: spinBtnGlow 2s ease-in-out infinite;
+            width: 100%;
+            max-width: 280px;
+        }
+
+        .spin-btn-mobile:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow:
+                0 8px 40px rgba(245, 87, 108, 0.7),
+                0 0 80px rgba(255, 215, 0, 0.5);
         }
 
         @keyframes spinBtnSpin {
@@ -825,7 +850,22 @@
                 animation: reelSpinMobile 0.15s linear infinite;
             }
 
+            /* Mobile layout: Show mobile spin button, hide desktop one */
             .game-info {
+                gap: 10px;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .spin-btn-mobile {
+                display: block;
+            }
+
+            .controls #spin-btn {
+                display: none;
+            }
+
+            .controls {
                 gap: 10px;
                 flex-direction: column;
                 align-items: center;
@@ -1030,6 +1070,7 @@
                 <h3>Jackpot Pool</h3>
                 <div class="value" id="jackpot-value">0 XPR</div>
             </div>
+            <button id="spin-btn-mobile" class="spin-btn-mobile" disabled>SPIN</button>
             <div class="info-box bet-box">
                 <h3>Select Bet</h3>
                 <div class="bet-selector" id="bet-selector"></div>

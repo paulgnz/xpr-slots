@@ -22,9 +22,9 @@
   "type": "module",
   "dependencies": {
     "@proton/cli": "^0.1.95",
-    "@proton/js": "^28.1.2",
-    "@proton/link": "^3.2.4",
-    "@proton/web-sdk": "^4.4.1",
+    "@proton/js": "^22.0.64",
+    "@proton/link": "^3.2.3-27",
+    "@proton/web-sdk": "^4.2.8",
     "node-fetch": "^2.7.0",
     "three": "^0.182.0",
     "vite": "^7.3.1"
