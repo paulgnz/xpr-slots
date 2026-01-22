@@ -876,10 +876,10 @@ function showLoading() {
   const loadingHelp = document.getElementById('loading-help');
   if (loadingHelp) {
     loadingHelp.classList.add('hidden');
-    // Show help after 3 seconds if still loading
+    // Show help after 6 seconds if still loading
     loadingHelpTimeout = setTimeout(() => {
       loadingHelp.classList.remove('hidden');
-    }, 3000);
+    }, 6000);
   }
 }
 
