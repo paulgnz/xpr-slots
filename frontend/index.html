@@ -807,16 +807,22 @@
             font-size: 0.9rem;
         }
 
-        .sign-manual-link {
-            color: #8866ff;
-            text-decoration: underline;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
+        .help-tips {
+            color: #888;
+            font-size: 0.85rem;
+            text-align: left;
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
 
-        .sign-manual-link:hover {
-            color: #ffd700;
+        .help-tips li {
+            padding: 4px 0;
+        }
+
+        .help-tips li::before {
+            content: "• ";
+            color: #8866ff;
         }
 
         .cancel-btn {
@@ -1257,7 +1263,11 @@
         <p class="loading-text">PROCESSING...</p>
         <div class="loading-help hidden" id="loading-help">
             <p>Wallet not opening?</p>
-            <a href="https://webauth.com" target="_blank" class="sign-manual-link">Open WebAuth manually</a>
+            <ul class="help-tips">
+                <li>Check if popups are blocked</li>
+                <li>Try using the WebAuth mobile app</li>
+                <li>Or use desktop browser</li>
+            </ul>
             <button id="cancel-sign-btn" class="cancel-btn">Cancel</button>
         </div>
     </div>
