@@ -127,6 +127,74 @@ import '@proton/link';
 
 ---
 
+## Issue Discovered: Safari iOS Blocks WebAuth Popups by Default
+
+**Date**: 2026-01-22
+**Project**: xpr-slots (https://github.com/paulgnz/xpr-slots)
+**Affected File**: `web-sdk.md`
+
+### Problem
+
+On Safari iOS, the WebAuth browser wallet signing flow doesn't work by default. Users see:
+- "Processing..." spinner that never completes
+- "Unknown requestor" message
+- WebAuth popup window never opens
+
+Desktop browsers (Chrome, Safari on macOS) work fine.
+
+### Root Cause
+
+Safari iOS blocks popups by default. The `@proton/web-sdk` uses popup windows to open webauth.com for transaction signing. When popups are blocked, the signing request never reaches WebAuth.
+
+### Solution
+
+Users must **allow popups for the dApp domain** in Safari iOS settings:
+
+1. Open **Settings** app on iPhone/iPad
+2. Scroll to **Safari**
+3. Turn **OFF** the "Block Pop-ups" toggle
+
+Or allow popups for a specific site when prompted.
+
+### Suggested Documentation Updates
+
+#### Add to "Known Issues" or "Troubleshooting" section in `web-sdk.md`:
+
+```markdown
+### Safari iOS: Signing Stuck on "Processing"
+
+**Symptom**: On Safari iOS, clicking actions that require wallet signing shows "Processing..." forever. The WebAuth popup never opens.
+
+**Cause**: Safari iOS blocks popups by default, and WebAuth uses popups for signing.
+
+**Solution**:
+1. Go to **Settings** > **Safari** on your iOS device
+2. Turn **OFF** "Block Pop-ups"
+
+Alternatively, users can use:
+- The WebAuth mobile app (deep links work without popups)
+- A different browser like Chrome on iOS
+- Desktop browser
+
+**Note for developers**: Consider showing a help message after a few seconds of "processing" to guide users to check their popup blocker settings.
+```
+
+#### Add to "Mobile Wallet Support" section:
+
+```markdown
+### Safari iOS Popup Blocker
+
+Safari iOS blocks popups by default, which prevents the WebAuth browser wallet from opening. Users on Safari iOS should either:
+
+1. Disable popup blocker: **Settings** > **Safari** > **Block Pop-ups** OFF
+2. Use the WebAuth mobile app instead of the browser wallet
+3. Use a different browser (Chrome, Firefox)
+
+Your dApp should display helpful guidance when signing appears stuck.
+```
+
+---
+
 ## Reference Implementation
 
 See working implementation in protonlink project:
