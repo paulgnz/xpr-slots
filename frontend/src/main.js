@@ -1160,46 +1160,82 @@ let spinSoundInterval = null;
 function playSpinStartSound() {
   if (!soundEnabled) return;
 
-  // Lever pull - mechanical clunk + whoosh
   const ctx = getAudioContext();
   const now = ctx.currentTime;
 
-  // Mechanical lever clunk
-  playTone(150, 0.08, 'square', 0.3);
-  playTone(80, 0.1, 'sawtooth', 0.2);
-
-  // Whoosh - noise sweep
-  const bufferSize = ctx.sampleRate * 0.3;
-  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) {
-    const envelope = Math.sin((i / bufferSize) * Math.PI);
-    data[i] = (Math.random() * 2 - 1) * envelope * 0.5;
-  }
-
-  const noise = ctx.createBufferSource();
+  // Rising swoosh - exciting launch feel
+  const osc = ctx.createOscillator();
+  const oscGain = ctx.createGain();
   const filter = ctx.createBiquadFilter();
-  const gain = ctx.createGain();
+  const delay = ctx.createDelay();
+  const delayGain = ctx.createGain();
 
-  noise.buffer = buffer;
-  filter.type = 'bandpass';
-  filter.frequency.setValueAtTime(500, now);
-  filter.frequency.exponentialRampToValueAtTime(2000, now + 0.15);
-  filter.frequency.exponentialRampToValueAtTime(800, now + 0.3);
-  filter.Q.value = 1;
+  osc.type = 'sine';
+  // Rising pitch from D4 to G5 (exciting upward sweep)
+  osc.frequency.setValueAtTime(294, now);
+  osc.frequency.exponentialRampToValueAtTime(784, now + 0.25);
 
-  noise.connect(filter);
-  filter.connect(gain);
-  gain.connect(ctx.destination);
-  gain.gain.value = 0.15;
+  // Envelope: quick attack, smooth decay
+  oscGain.gain.setValueAtTime(0, now);
+  oscGain.gain.linearRampToValueAtTime(0.2, now + 0.03);
+  oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
 
-  noise.start(now);
+  // Warm filter that opens up
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(800, now);
+  filter.frequency.exponentialRampToValueAtTime(3000, now + 0.2);
 
-  // Rising anticipation tone
-  setTimeout(() => {
-    playTone(200, 0.15, 'sine', 0.1);
-    playTone(300, 0.15, 'sine', 0.08);
-  }, 100);
+  // Reverb
+  delay.delayTime.value = 0.06;
+  delayGain.gain.value = 0.25;
+
+  osc.connect(oscGain);
+  oscGain.connect(filter);
+  filter.connect(ctx.destination);
+  filter.connect(delay);
+  delay.connect(delayGain);
+  delayGain.connect(ctx.destination);
+
+  osc.start(now);
+  osc.stop(now + 0.5);
+
+  // Harmonic shimmer (octave + fifth above)
+  const harm1 = ctx.createOscillator();
+  const harm2 = ctx.createOscillator();
+  const harmGain = ctx.createGain();
+
+  harm1.type = 'sine';
+  harm1.frequency.setValueAtTime(588, now);
+  harm1.frequency.exponentialRampToValueAtTime(1568, now + 0.25);
+
+  harm2.type = 'triangle';
+  harm2.frequency.setValueAtTime(440, now);
+  harm2.frequency.exponentialRampToValueAtTime(1175, now + 0.25);
+
+  harmGain.gain.setValueAtTime(0, now);
+  harmGain.gain.linearRampToValueAtTime(0.08, now + 0.05);
+  harmGain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+
+  harm1.connect(harmGain);
+  harm2.connect(harmGain);
+  harmGain.connect(filter);
+
+  harm1.start(now);
+  harm2.start(now);
+  harm1.stop(now + 0.4);
+  harm2.stop(now + 0.4);
+
+  // Soft percussive attack
+  const clickOsc = ctx.createOscillator();
+  const clickGain = ctx.createGain();
+  clickOsc.type = 'sine';
+  clickOsc.frequency.value = 880;
+  clickGain.gain.setValueAtTime(0.15, now);
+  clickGain.gain.exponentialRampToValueAtTime(0.01, now + 0.06);
+  clickOsc.connect(clickGain);
+  clickGain.connect(ctx.destination);
+  clickOsc.start(now);
+  clickOsc.stop(now + 0.08);
 }
 
 // Spinning sound removed - couldn't get it to sound good
