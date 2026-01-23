@@ -1202,72 +1202,39 @@ function playSpinStartSound() {
   }, 100);
 }
 
-let spinningOscillator = null;
-let spinningGain = null;
+let spinSoundInterval = null;
 
 function startSpinningSound() {
   if (!soundEnabled) return;
-
-  // Clear any existing sound first
   stopSpinningSound();
 
-  const ctx = getAudioContext();
+  // Soft ticking like reels passing symbols
+  spinSoundInterval = setInterval(() => {
+    if (!soundEnabled) return;
+    const ctx = getAudioContext();
 
-  // Create a smooth mechanical whirring sound
-  spinningOscillator = ctx.createOscillator();
-  const osc2 = ctx.createOscillator();
-  const filter = ctx.createBiquadFilter();
-  spinningGain = ctx.createGain();
+    // Soft tick - short sine wave
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
 
-  // Main spinning tone
-  spinningOscillator.type = 'sawtooth';
-  spinningOscillator.frequency.value = 120;
+    osc.type = 'sine';
+    osc.frequency.value = 300 + Math.random() * 100;
 
-  // Higher harmonic for presence
-  osc2.type = 'triangle';
-  osc2.frequency.value = 240;
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.04);
 
-  // Lowpass filter for smooth mechanical sound
-  filter.type = 'lowpass';
-  filter.frequency.value = 600;
-  filter.Q.value = 1;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
 
-  // Audible volume
-  spinningGain.gain.setValueAtTime(0, ctx.currentTime);
-  spinningGain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 0.15);
-
-  spinningOscillator.connect(filter);
-  osc2.connect(filter);
-  filter.connect(spinningGain);
-  spinningGain.connect(ctx.destination);
-
-  spinningOscillator.start();
-  osc2.start();
-
-  // Store osc2 for cleanup
-  spinningOscillator._osc2 = osc2;
+    osc.start();
+    osc.stop(ctx.currentTime + 0.04);
+  }, 80);
 }
 
 function stopSpinningSound() {
-  if (spinningOscillator) {
-    const ctx = getAudioContext();
-    // Fade out smoothly
-    if (spinningGain) {
-      spinningGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15);
-    }
-    const osc2 = spinningOscillator._osc2;
-    setTimeout(() => {
-      try {
-        spinningOscillator.stop();
-        spinningOscillator.disconnect();
-        if (osc2) {
-          osc2.stop();
-          osc2.disconnect();
-        }
-      } catch (e) {}
-      spinningOscillator = null;
-      spinningGain = null;
-    }, 200);
+  if (spinSoundInterval) {
+    clearInterval(spinSoundInterval);
+    spinSoundInterval = null;
   }
 }
 
