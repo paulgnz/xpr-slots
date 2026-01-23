@@ -1202,32 +1202,57 @@ function playSpinStartSound() {
   }, 100);
 }
 
+let spinningOscillator = null;
+let spinningGain = null;
+
 function startSpinningSound() {
   if (!soundEnabled) return;
 
-  // Clear any existing interval first
+  // Clear any existing sound first
   stopSpinningSound();
 
-  // Continuous clicking/whirring while reels spin
-  let tick = 0;
-  spinSoundInterval = setInterval(() => {
-    const ctx = getAudioContext();
-    // Reel tick sound - varies slightly each tick
-    const freq = 800 + Math.random() * 400;
-    playTone(freq, 0.02, 'square', 0.06);
+  const ctx = getAudioContext();
 
-    // Occasional deeper click
-    if (tick % 3 === 0) {
-      playTone(200 + Math.random() * 100, 0.03, 'triangle', 0.04);
-    }
-    tick++;
-  }, 50);
+  // Create a smooth mechanical whirring sound
+  spinningOscillator = ctx.createOscillator();
+  const filter = ctx.createBiquadFilter();
+  spinningGain = ctx.createGain();
+
+  // Low rumbling tone
+  spinningOscillator.type = 'sawtooth';
+  spinningOscillator.frequency.value = 80;
+
+  // Bandpass filter for mechanical quality
+  filter.type = 'bandpass';
+  filter.frequency.value = 200;
+  filter.Q.value = 2;
+
+  // Gentle volume
+  spinningGain.gain.setValueAtTime(0, ctx.currentTime);
+  spinningGain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.2);
+
+  spinningOscillator.connect(filter);
+  filter.connect(spinningGain);
+  spinningGain.connect(ctx.destination);
+
+  spinningOscillator.start();
 }
 
 function stopSpinningSound() {
-  if (spinSoundInterval) {
-    clearInterval(spinSoundInterval);
-    spinSoundInterval = null;
+  if (spinningOscillator) {
+    const ctx = getAudioContext();
+    // Fade out smoothly
+    if (spinningGain) {
+      spinningGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15);
+    }
+    setTimeout(() => {
+      try {
+        spinningOscillator.stop();
+        spinningOscillator.disconnect();
+      } catch (e) {}
+      spinningOscillator = null;
+      spinningGain = null;
+    }, 200);
   }
 }
 
