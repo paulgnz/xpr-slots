@@ -30,7 +30,7 @@ function getAudioContext() {
 
 // Background Music System
 let currentTrack = 'none';
-let musicNodes = [];
+let musicNodes = []; // Stores {osc, nodes[]} for cleanup
 let musicInterval = null;
 let musicMasterGain = null; // Global gain for ducking
 
@@ -42,6 +42,23 @@ function getMusicMasterGain() {
     musicMasterGain.connect(ctx.destination);
   }
   return musicMasterGain;
+}
+
+// Helper to register oscillator with auto-cleanup on end
+function registerMusicOsc(osc, connectedNodes = []) {
+  const entry = { osc, nodes: connectedNodes };
+  musicNodes.push(entry);
+
+  // Auto-cleanup when oscillator ends
+  osc.onended = () => {
+    connectedNodes.forEach(node => {
+      try { node.disconnect(); } catch (e) {}
+    });
+    try { osc.disconnect(); } catch (e) {}
+    // Remove from array
+    const idx = musicNodes.indexOf(entry);
+    if (idx > -1) musicNodes.splice(idx, 1);
+  };
 }
 
 // Duck music volume temporarily for win sounds
@@ -56,9 +73,19 @@ function duckMusic(duration = 1.5) {
 }
 
 function stopMusic() {
-  musicNodes.forEach(node => {
+  // Stop and disconnect all nodes
+  musicNodes.forEach(entry => {
     try {
-      node.stop();
+      if (entry.osc) {
+        entry.osc.onended = null; // Prevent double cleanup
+        entry.osc.stop();
+        entry.osc.disconnect();
+      }
+      if (entry.nodes) {
+        entry.nodes.forEach(node => {
+          try { node.disconnect(); } catch (e) {}
+        });
+      }
     } catch (e) {}
   });
   musicNodes = [];
@@ -107,7 +134,7 @@ function playChillMusic() {
 
       osc.start(ctx.currentTime);
       osc.stop(ctx.currentTime + 4);
-      musicNodes.push(osc);
+      registerMusicOsc(osc, [filter, gain]);
     });
     chordIndex++;
   }
@@ -158,7 +185,8 @@ function playAmbientMusic() {
       osc.start(ctx.currentTime);
       osc.stop(ctx.currentTime + 15);
       lfo.stop(ctx.currentTime + 15);
-      musicNodes.push(osc, lfo);
+      registerMusicOsc(osc, [filter, gain, lfoGain]);
+      registerMusicOsc(lfo, []);
     });
   }
 
@@ -273,7 +301,8 @@ function playCasinoMusic() {
     osc2.start(startTime);
     osc1.stop(startTime + duration);
     osc2.stop(startTime + duration);
-    musicNodes.push(osc1, osc2);
+    registerMusicOsc(osc1, [filter, gain]);
+    registerMusicOsc(osc2, []);
   }
 
   // Create electric piano / Rhodes-like chord sound
@@ -310,7 +339,8 @@ function playCasinoMusic() {
       osc.start(startTime);
       modulator.stop(startTime + duration);
       osc.stop(startTime + duration);
-      musicNodes.push(osc, modulator);
+      registerMusicOsc(osc, [filter, gain, modGain]);
+      registerMusicOsc(modulator, []);
     });
   }
 
@@ -338,7 +368,7 @@ function playCasinoMusic() {
 
     osc.start(startTime);
     osc.stop(startTime + duration);
-    musicNodes.push(osc);
+    registerMusicOsc(osc, [filter, gain]);
   }
 
   // Create sparkly arpeggio sound
@@ -357,7 +387,7 @@ function playCasinoMusic() {
 
     osc.start(startTime);
     osc.stop(startTime + 0.15);
-    musicNodes.push(osc);
+    registerMusicOsc(osc, [gain]);
   }
 
   // Hi-hat rhythm for groove
@@ -384,7 +414,7 @@ function playCasinoMusic() {
     gain.gain.value = accent ? 0.06 : 0.03;
 
     noise.start(startTime);
-    musicNodes.push(noise);
+    registerMusicOsc(noise, [filter, gain]);
   }
 
   // 8-beat loop duration
@@ -565,7 +595,10 @@ function playDnBMusic() {
     osc1.stop(startTime + duration);
     osc2.stop(startTime + duration);
     subOsc.stop(startTime + duration);
-    musicNodes.push(osc1, osc2, subOsc, lfo);
+    registerMusicOsc(osc1, [filter, gain, lfoGain]);
+    registerMusicOsc(osc2, []);
+    registerMusicOsc(subOsc, [subGain]);
+    registerMusicOsc(lfo, []);
   }
 
   // Punchy synth stab
@@ -592,7 +625,7 @@ function playDnBMusic() {
 
       osc.start(startTime);
       osc.stop(startTime + duration);
-      musicNodes.push(osc);
+      registerMusicOsc(osc, [filter, gain]);
     });
   }
 
@@ -614,7 +647,7 @@ function playDnBMusic() {
 
     osc.start(startTime);
     osc.stop(startTime + duration);
-    musicNodes.push(osc);
+    registerMusicOsc(osc, [gain]);
   }
 
   // Coin/arpeggio sound
@@ -633,7 +666,7 @@ function playDnBMusic() {
 
     osc.start(startTime);
     osc.stop(startTime + 0.1);
-    musicNodes.push(osc);
+    registerMusicOsc(osc, [gain]);
   }
 
   // DnB breakbeat kick - punchy with sub
@@ -666,7 +699,8 @@ function playDnBMusic() {
     click.start(startTime);
     osc.stop(startTime + 0.2);
     click.stop(startTime + 0.015);
-    musicNodes.push(osc, click);
+    registerMusicOsc(osc, [gain]);
+    registerMusicOsc(click, [clickGain]);
   }
 
   // Snappy snare
@@ -706,7 +740,8 @@ function playDnBMusic() {
     noise.start(startTime);
     osc.start(startTime);
     osc.stop(startTime + 0.08);
-    musicNodes.push(noise, osc);
+    registerMusicOsc(noise, [noiseFilter, noiseGain]);
+    registerMusicOsc(osc, [oscGain]);
   }
 
   // Fast hi-hats
@@ -732,7 +767,7 @@ function playDnBMusic() {
     gain.gain.value = open ? 0.08 : 0.05;
 
     noise.start(startTime);
-    musicNodes.push(noise);
+    registerMusicOsc(noise, [filter, gain]);
   }
 
   // DnB breakbeat pattern (amen-style)
