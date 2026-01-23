@@ -1159,6 +1159,355 @@ function playCoinSound() {
   setTimeout(() => playTone(2400, 0.1, 'sine', 0.08), 100);
 }
 
+// ==========================================
+// WIN CELEBRATION SYSTEM
+// ==========================================
+
+let particleCanvas = null;
+let particleCtx = null;
+let particles = [];
+let animationId = null;
+
+// Particle class
+class Particle {
+  constructor(x, y, type = 'coin') {
+    this.x = x;
+    this.y = y;
+    this.type = type;
+
+    if (type === 'coin') {
+      this.vx = (Math.random() - 0.5) * 15;
+      this.vy = Math.random() * -18 - 5;
+      this.size = Math.random() * 12 + 8;
+      this.rotation = Math.random() * Math.PI * 2;
+      this.rotationSpeed = (Math.random() - 0.5) * 0.3;
+      this.color = Math.random() > 0.3 ? '#ffd700' : '#ffaa00';
+      this.gravity = 0.4;
+      this.bounce = 0.6;
+      this.life = 1;
+      this.decay = 0.008;
+    } else if (type === 'rain') {
+      this.vx = (Math.random() - 0.5) * 2;
+      this.vy = Math.random() * 5 + 8;
+      this.size = Math.random() * 10 + 6;
+      this.rotation = Math.random() * Math.PI * 2;
+      this.rotationSpeed = (Math.random() - 0.5) * 0.2;
+      this.color = Math.random() > 0.5 ? '#ffd700' : '#ffcc00';
+      this.gravity = 0.1;
+      this.life = 1;
+      this.decay = 0.003;
+    } else if (type === 'confetti') {
+      this.vx = (Math.random() - 0.5) * 12;
+      this.vy = Math.random() * -15 - 3;
+      this.size = Math.random() * 8 + 4;
+      this.rotation = Math.random() * Math.PI * 2;
+      this.rotationSpeed = (Math.random() - 0.5) * 0.4;
+      this.color = ['#ff66ff', '#00ffaa', '#ffd700', '#ff6b6b', '#4ecdc4', '#ffe66d'][Math.floor(Math.random() * 6)];
+      this.gravity = 0.25;
+      this.life = 1;
+      this.decay = 0.006;
+    } else if (type === 'sparkle') {
+      this.vx = (Math.random() - 0.5) * 8;
+      this.vy = (Math.random() - 0.5) * 8;
+      this.size = Math.random() * 4 + 2;
+      this.color = '#ffffff';
+      this.gravity = 0;
+      this.life = 1;
+      this.decay = 0.03;
+    }
+  }
+
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.vy += this.gravity || 0;
+    this.rotation += this.rotationSpeed || 0;
+    this.life -= this.decay;
+
+    // Bounce off bottom for coins
+    if (this.type === 'coin' && this.y > particleCanvas.height - this.size) {
+      this.y = particleCanvas.height - this.size;
+      this.vy *= -this.bounce;
+      this.vx *= 0.8;
+    }
+
+    return this.life > 0;
+  }
+
+  draw(ctx) {
+    ctx.save();
+    ctx.globalAlpha = this.life;
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation || 0);
+
+    if (this.type === 'coin' || this.type === 'rain') {
+      // Draw coin
+      ctx.beginPath();
+      ctx.ellipse(0, 0, this.size, this.size * 0.7, 0, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.fill();
+      ctx.strokeStyle = '#aa7700';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      // Inner circle
+      ctx.beginPath();
+      ctx.ellipse(0, 0, this.size * 0.6, this.size * 0.4, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = '#ffee88';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    } else if (this.type === 'confetti') {
+      // Draw confetti rectangle
+      ctx.fillStyle = this.color;
+      ctx.fillRect(-this.size / 2, -this.size / 4, this.size, this.size / 2);
+    } else if (this.type === 'sparkle') {
+      // Draw sparkle star
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      for (let i = 0; i < 4; i++) {
+        const angle = (i / 4) * Math.PI * 2;
+        const x = Math.cos(angle) * this.size;
+        const y = Math.sin(angle) * this.size;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+        const midAngle = angle + Math.PI / 4;
+        ctx.lineTo(Math.cos(midAngle) * this.size * 0.3, Math.sin(midAngle) * this.size * 0.3);
+      }
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+}
+
+function initParticleSystem() {
+  particleCanvas = document.getElementById('particle-canvas');
+  if (!particleCanvas) return;
+
+  particleCtx = particleCanvas.getContext('2d');
+  resizeParticleCanvas();
+  window.addEventListener('resize', resizeParticleCanvas);
+}
+
+function resizeParticleCanvas() {
+  if (!particleCanvas) return;
+  particleCanvas.width = window.innerWidth;
+  particleCanvas.height = window.innerHeight;
+}
+
+function animateParticles() {
+  if (!particleCtx) return;
+
+  particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+
+  particles = particles.filter(p => {
+    const alive = p.update();
+    if (alive) p.draw(particleCtx);
+    return alive;
+  });
+
+  if (particles.length > 0) {
+    animationId = requestAnimationFrame(animateParticles);
+  } else {
+    animationId = null;
+  }
+}
+
+function startParticleAnimation() {
+  if (!animationId) {
+    animateParticles();
+  }
+}
+
+// Spawn particles from a point
+function spawnBurst(x, y, count, type = 'coin') {
+  for (let i = 0; i < count; i++) {
+    particles.push(new Particle(x, y, type));
+  }
+  startParticleAnimation();
+}
+
+// Coin rain from top
+function startCoinRain(duration = 3000, intensity = 'medium') {
+  const counts = { light: 3, medium: 6, heavy: 12, extreme: 20 };
+  const count = counts[intensity] || 6;
+  const interval = 100;
+  let elapsed = 0;
+
+  const rainInterval = setInterval(() => {
+    for (let i = 0; i < count; i++) {
+      const x = Math.random() * particleCanvas.width;
+      particles.push(new Particle(x, -20, 'rain'));
+    }
+    startParticleAnimation();
+
+    elapsed += interval;
+    if (elapsed >= duration) {
+      clearInterval(rainInterval);
+    }
+  }, interval);
+}
+
+// Payout counter animation
+function showPayoutCounter(amount, tier = 'normal') {
+  const display = document.getElementById('payout-display');
+  const counter = document.getElementById('payout-counter');
+  if (!display || !counter) return;
+
+  // Set tier class
+  display.className = 'payout-display';
+  if (tier === 'jackpot') display.classList.add('jackpot');
+  else if (tier === 'epic') display.classList.add('epic');
+
+  display.classList.remove('hidden');
+
+  // Animate counter
+  const xprAmount = amount / 10000;
+  const duration = tier === 'jackpot' ? 3000 : tier === 'epic' ? 2000 : 1000;
+  const steps = 60;
+  const increment = xprAmount / steps;
+  let current = 0;
+  let step = 0;
+
+  const counterInterval = setInterval(() => {
+    step++;
+    current = Math.min(current + increment + (increment * Math.random() * 0.5), xprAmount);
+
+    if (current >= xprAmount * 0.9) {
+      current = xprAmount;
+    }
+
+    // Format with commas
+    counter.textContent = current < 10
+      ? current.toFixed(2)
+      : Math.floor(current).toLocaleString();
+
+    if (step >= steps || current >= xprAmount) {
+      counter.textContent = xprAmount < 10
+        ? xprAmount.toFixed(2)
+        : Math.floor(xprAmount).toLocaleString();
+      clearInterval(counterInterval);
+
+      // Hide after delay
+      const hideDelay = tier === 'jackpot' ? 5000 : tier === 'epic' ? 3000 : 2000;
+      setTimeout(() => {
+        display.classList.add('hidden');
+      }, hideDelay);
+    }
+  }, duration / steps);
+}
+
+// ==========================================
+// TIERED WIN CELEBRATIONS
+// ==========================================
+
+// Bronze: Two match (0.5x) - subtle
+function celebrateTwoMatch(payout) {
+  const slotMachine = document.querySelector('.slot-machine');
+  const rect = slotMachine?.getBoundingClientRect() || { left: window.innerWidth / 2, top: window.innerHeight / 3 };
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  spawnBurst(centerX, centerY, 8, 'coin');
+  showPayoutCounter(payout, 'normal');
+}
+
+// Silver: Lemons (1.5x) - nice
+function celebrateLemons(payout) {
+  const slotMachine = document.querySelector('.slot-machine');
+  const rect = slotMachine?.getBoundingClientRect() || { left: window.innerWidth / 2, top: window.innerHeight / 3 };
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  spawnBurst(centerX, centerY, 20, 'coin');
+  spawnBurst(centerX, centerY, 10, 'sparkle');
+  showPayoutCounter(payout, 'normal');
+}
+
+// Silver+: Bells (2x) - good
+function celebrateBells(payout) {
+  const slotMachine = document.querySelector('.slot-machine');
+  const rect = slotMachine?.getBoundingClientRect() || { left: window.innerWidth / 2, top: window.innerHeight / 3 };
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  spawnBurst(centerX, centerY, 30, 'coin');
+  spawnBurst(centerX, centerY, 15, 'sparkle');
+  startCoinRain(1500, 'light');
+  showPayoutCounter(payout, 'normal');
+}
+
+// Gold: Bars (3x) - great
+function celebrateBars(payout) {
+  const slotMachine = document.querySelector('.slot-machine');
+  const rect = slotMachine?.getBoundingClientRect() || { left: window.innerWidth / 2, top: window.innerHeight / 3 };
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  spawnBurst(centerX, centerY, 50, 'coin');
+  spawnBurst(centerX, centerY, 20, 'confetti');
+  startCoinRain(2000, 'medium');
+  showPayoutCounter(payout, 'normal');
+}
+
+// Platinum: Cherries (5x) - EPIC!
+function celebrateCherries(payout) {
+  const slotMachine = document.querySelector('.slot-machine');
+  const rect = slotMachine?.getBoundingClientRect() || { left: window.innerWidth / 2, top: window.innerHeight / 3 };
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  // Massive burst
+  spawnBurst(centerX, centerY, 80, 'coin');
+  spawnBurst(centerX, centerY, 40, 'confetti');
+  spawnBurst(centerX, centerY, 30, 'sparkle');
+
+  // Heavy coin rain
+  startCoinRain(4000, 'heavy');
+
+  // Secondary bursts
+  setTimeout(() => spawnBurst(centerX - 100, centerY, 30, 'coin'), 300);
+  setTimeout(() => spawnBurst(centerX + 100, centerY, 30, 'coin'), 600);
+  setTimeout(() => spawnBurst(centerX, centerY - 50, 40, 'confetti'), 900);
+
+  showPayoutCounter(payout, 'epic');
+}
+
+// Diamond: Jackpot (7-7-7) - ULTIMATE!
+function celebrateJackpot(payout) {
+  const slotMachine = document.querySelector('.slot-machine');
+  const rect = slotMachine?.getBoundingClientRect() || { left: window.innerWidth / 2, top: window.innerHeight / 3 };
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  // MASSIVE initial burst
+  spawnBurst(centerX, centerY, 150, 'coin');
+  spawnBurst(centerX, centerY, 80, 'confetti');
+  spawnBurst(centerX, centerY, 50, 'sparkle');
+
+  // Extreme coin rain
+  startCoinRain(8000, 'extreme');
+
+  // Wave after wave of bursts
+  for (let i = 0; i < 8; i++) {
+    setTimeout(() => {
+      const offsetX = (Math.random() - 0.5) * 200;
+      const offsetY = (Math.random() - 0.5) * 100;
+      spawnBurst(centerX + offsetX, centerY + offsetY, 40, 'coin');
+      spawnBurst(centerX + offsetX, centerY + offsetY, 25, 'confetti');
+    }, 500 + i * 400);
+  }
+
+  // Sparkle explosions
+  for (let i = 0; i < 5; i++) {
+    setTimeout(() => {
+      spawnBurst(Math.random() * particleCanvas.width, Math.random() * particleCanvas.height * 0.6, 30, 'sparkle');
+    }, 1000 + i * 600);
+  }
+
+  showPayoutCounter(payout, 'jackpot');
+}
+
 function toggleSound() {
   soundEnabled = !soundEnabled;
   const soundBtn = document.getElementById('sound-btn');
@@ -1765,22 +2114,40 @@ async function spin() {
       // Show result after landing animation completes
       setTimeout(() => {
         if (spinResult.jackpotWon) {
+          // JACKPOT - Ultimate celebration!
           playJackpotSound();
           showResult(`🎉 JACKPOT! You won ${formatXPR(spinResult.payout)}! 🎉`, 'jackpot');
-          createWinExplosion();
+          celebrateJackpot(spinResult.payout);
         } else if (spinResult.payout > 0) {
-          // Play different sounds based on win type
+          // Play different sounds and celebrations based on win type
           const r1 = spinResult.reel1, r2 = spinResult.reel2, r3 = spinResult.reel3;
           const isThreeOfAKind = (r1 === r2 && r2 === r3);
           if (isThreeOfAKind) {
             // Symbol indices: 0=Lemon, 1=Cherry, 2=Bell, 3=Bar, 4=Seven
-            if (r1 === 1) playThreeCherriesSound();      // Cherry - 5x
-            else if (r1 === 3) playThreeBarsSound();     // Bar - 3x
-            else if (r1 === 2) playThreeBellsSound();    // Bell - 2x
-            else if (r1 === 0) playThreeLemonsSound();   // Lemon - 1.5x
-            else playWinSound();
+            if (r1 === 1) {
+              // Cherry - 5x - EPIC!
+              playThreeCherriesSound();
+              celebrateCherries(spinResult.payout);
+            } else if (r1 === 3) {
+              // Bar - 3x - Great
+              playThreeBarsSound();
+              celebrateBars(spinResult.payout);
+            } else if (r1 === 2) {
+              // Bell - 2x - Good
+              playThreeBellsSound();
+              celebrateBells(spinResult.payout);
+            } else if (r1 === 0) {
+              // Lemon - 1.5x - Nice
+              playThreeLemonsSound();
+              celebrateLemons(spinResult.payout);
+            } else {
+              playWinSound();
+              celebrateLemons(spinResult.payout);
+            }
           } else {
-            playTwoMatchSound(); // Two matching - 0.5x
+            // Two matching - 0.5x - Subtle
+            playTwoMatchSound();
+            celebrateTwoMatch(spinResult.payout);
           }
           showResult(`Winner! ${SYMBOLS[spinResult.reel1]} ${SYMBOLS[spinResult.reel2]} ${SYMBOLS[spinResult.reel3]} = +${formatXPR(spinResult.payout)}`, 'win');
         } else {
@@ -1926,6 +2293,9 @@ function hideLoading() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+  // Initialize particle system for win celebrations
+  initParticleSystem();
+
   // Event listeners - must be inside DOMContentLoaded
   spinBtn.addEventListener('click', spin);
   if (spinBtnMobile) spinBtnMobile.addEventListener('click', spin);
