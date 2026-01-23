@@ -1202,41 +1202,9 @@ function playSpinStartSound() {
   }, 100);
 }
 
-let spinSoundInterval = null;
-
-function startSpinningSound() {
-  if (!soundEnabled) return;
-  stopSpinningSound();
-
-  // Soft ticking like reels passing symbols
-  spinSoundInterval = setInterval(() => {
-    if (!soundEnabled) return;
-    const ctx = getAudioContext();
-
-    // Soft tick - short sine wave
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.value = 300 + Math.random() * 100;
-
-    gain.gain.setValueAtTime(0.12, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.04);
-
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    osc.start();
-    osc.stop(ctx.currentTime + 0.04);
-  }, 80);
-}
-
-function stopSpinningSound() {
-  if (spinSoundInterval) {
-    clearInterval(spinSoundInterval);
-    spinSoundInterval = null;
-  }
-}
+// Spinning sound removed - couldn't get it to sound good
+function startSpinningSound() {}
+function stopSpinningSound() {}
 
 function playReelStopSound(reelIndex) {
   if (!soundEnabled) return;
