@@ -1,0 +1,99 @@
+WebAuth Mobile Wallet Troubleshooting Guide
+===========================================
+
+Having issues with WebAuth on mobile? Here are the most common problems and fixes:
+
+
+PROBLEM: Stuck on "Processing..." - mobile app never opens
+----------------------------------------------------------
+CAUSE: Missing @proton/link package or using static imports
+FIX:
+  1. Install both packages: npm install @proton/web-sdk @proton/link
+  2. Use dynamic imports with Promise.all (see code below)
+
+
+PROBLEM: Shows "Unknown requestor"
+----------------------------------
+CAUSE: requestAccount is empty or not set
+FIX: Set requestAccount to your contract/app name in transportOptions:
+  transportOptions: {
+    requestAccount: 'yourcontract'
+  }
+
+
+PROBLEM: Mobile app signs but doesn't return to browser
+-------------------------------------------------------
+CAUSE: requestAccount is wrong or requestStatus not set
+FIX:
+  1. Verify the account exists on chain
+  2. Add requestStatus: true to transportOptions
+
+
+PROBLEM: Only browser wallet option shown (no mobile)
+-----------------------------------------------------
+CAUSE: enabledWalletTypes not configured
+FIX: Add to selectorOptions:
+  selectorOptions: {
+    enabledWalletTypes: ['webauth', 'proton']
+  }
+
+
+PROBLEM: Safari iOS - popup never opens
+---------------------------------------
+CAUSE: Safari blocks popups by default
+FIX: Settings > Safari > Block Pop-ups > OFF
+OR: Use the WebAuth mobile app instead of browser wallet
+
+
+PROBLEM: Wrong account after switching wallets (iOS)
+----------------------------------------------------
+CAUSE: WebAuth iOS app caches session
+FIX: Force quit WebAuth app before switching accounts
+
+
+COMPLETE WORKING CODE
+=====================
+
+// Install: npm install @proton/web-sdk @proton/link
+
+let ProtonWebSDK;
+let sdkReady = null;
+
+if (typeof window !== 'undefined') {
+  sdkReady = Promise.all([
+    import('@proton/web-sdk').then(mod => { ProtonWebSDK = mod.default; }),
+    import('@proton/link')
+  ]).then(() => {});
+}
+
+async function login() {
+  if (sdkReady) await sdkReady;
+
+  const { link, session } = await ProtonWebSDK({
+    linkOptions: {
+      chainId: '384da888112027f0321850a169f737c33e53b388aad48b5adace4bab97f437e0',
+      endpoints: ['https://proton.greymass.com'],
+      restoreSession: false
+    },
+    transportOptions: {
+      requestAccount: 'yourcontract',  // <-- Your contract name
+      requestStatus: true
+    },
+    selectorOptions: {
+      appName: 'Your App Name',
+      enabledWalletTypes: ['webauth', 'proton']
+    }
+  });
+
+  return { link, session };
+}
+
+
+KEY POINTS
+==========
+- ALWAYS use dynamic imports with Promise.all
+- ALWAYS set requestAccount to a valid account name
+- ALWAYS include enabledWalletTypes: ['webauth', 'proton']
+- Static imports like `import '@proton/link'` don't work reliably on mobile
+
+Questions? https://discord.gg/xprnetwork
