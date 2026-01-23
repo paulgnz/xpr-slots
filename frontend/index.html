@@ -305,6 +305,26 @@
             color: #ffd700;
         }
 
+        .info-box.jackpot.glow-pulse {
+            animation: jackpotBoxPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes jackpotBoxPulse {
+            0%, 100% {
+                box-shadow:
+                    0 0 30px rgba(255, 215, 0, 0.3),
+                    0 0 60px rgba(255, 215, 0, 0.1),
+                    inset 0 0 20px rgba(0, 0, 0, 0.3);
+            }
+            50% {
+                box-shadow:
+                    0 0 40px rgba(255, 215, 0, 0.5),
+                    0 0 80px rgba(255, 215, 0, 0.2),
+                    0 0 120px rgba(255, 215, 0, 0.1),
+                    inset 0 0 20px rgba(0, 0, 0, 0.3);
+            }
+        }
+
         .bet-selector {
             display: flex;
             gap: 8px;
@@ -860,6 +880,7 @@
 
         .spin-item .payout-amount {
             font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
             color: #00ffaa;
         }
 

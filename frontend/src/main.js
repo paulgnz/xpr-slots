@@ -935,14 +935,6 @@ function playSpinSound() {
   });
 }
 
-function playReelStopSound(reelIndex) {
-  // Mechanical click sound
-  setTimeout(() => {
-    playTone(200 + reelIndex * 50, 0.08, 'square', 0.15);
-    playTone(100, 0.05, 'sawtooth', 0.1);
-  }, 0);
-}
-
 function playWinSound() {
   // Generic win - ascending arpeggio
   const notes = [523, 659, 784, 1047]; // C5, E5, G5, C6
@@ -1160,6 +1152,131 @@ function playCoinSound() {
 }
 
 // ==========================================
+// SPIN SOUNDS
+// ==========================================
+
+let spinSoundInterval = null;
+
+function playSpinStartSound() {
+  if (!soundEnabled) return;
+
+  // Lever pull - mechanical clunk + whoosh
+  const ctx = getAudioContext();
+  const now = ctx.currentTime;
+
+  // Mechanical lever clunk
+  playTone(150, 0.08, 'square', 0.3);
+  playTone(80, 0.1, 'sawtooth', 0.2);
+
+  // Whoosh - noise sweep
+  const bufferSize = ctx.sampleRate * 0.3;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    const envelope = Math.sin((i / bufferSize) * Math.PI);
+    data[i] = (Math.random() * 2 - 1) * envelope * 0.5;
+  }
+
+  const noise = ctx.createBufferSource();
+  const filter = ctx.createBiquadFilter();
+  const gain = ctx.createGain();
+
+  noise.buffer = buffer;
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(500, now);
+  filter.frequency.exponentialRampToValueAtTime(2000, now + 0.15);
+  filter.frequency.exponentialRampToValueAtTime(800, now + 0.3);
+  filter.Q.value = 1;
+
+  noise.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  gain.gain.value = 0.15;
+
+  noise.start(now);
+
+  // Rising anticipation tone
+  setTimeout(() => {
+    playTone(200, 0.15, 'sine', 0.1);
+    playTone(300, 0.15, 'sine', 0.08);
+  }, 100);
+}
+
+function startSpinningSound() {
+  if (!soundEnabled) return;
+
+  // Clear any existing interval first
+  stopSpinningSound();
+
+  // Continuous clicking/whirring while reels spin
+  let tick = 0;
+  spinSoundInterval = setInterval(() => {
+    const ctx = getAudioContext();
+    // Reel tick sound - varies slightly each tick
+    const freq = 800 + Math.random() * 400;
+    playTone(freq, 0.02, 'square', 0.06);
+
+    // Occasional deeper click
+    if (tick % 3 === 0) {
+      playTone(200 + Math.random() * 100, 0.03, 'triangle', 0.04);
+    }
+    tick++;
+  }, 50);
+}
+
+function stopSpinningSound() {
+  if (spinSoundInterval) {
+    clearInterval(spinSoundInterval);
+    spinSoundInterval = null;
+  }
+}
+
+function playReelStopSound(reelIndex) {
+  if (!soundEnabled) return;
+
+  // Satisfying mechanical clunk when reel stops
+  // Gets more dramatic with each reel (building anticipation)
+  const baseVolume = 0.15 + reelIndex * 0.05;
+  const basePitch = 150 - reelIndex * 20;
+
+  // Main clunk
+  playTone(basePitch, 0.12, 'square', baseVolume);
+  playTone(basePitch * 0.5, 0.15, 'triangle', baseVolume * 0.7);
+
+  // Impact transient
+  const ctx = getAudioContext();
+  const bufferSize = ctx.sampleRate * 0.05;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 3);
+  }
+
+  const noise = ctx.createBufferSource();
+  const filter = ctx.createBiquadFilter();
+  const gain = ctx.createGain();
+
+  noise.buffer = buffer;
+  filter.type = 'lowpass';
+  filter.frequency.value = 800 + reelIndex * 200;
+
+  noise.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  gain.gain.value = baseVolume * 0.5;
+
+  noise.start();
+
+  // Resonant ring for last reel (most dramatic)
+  if (reelIndex === 2) {
+    setTimeout(() => {
+      playTone(400, 0.2, 'sine', 0.08);
+      playTone(600, 0.15, 'sine', 0.05);
+    }, 50);
+  }
+}
+
+// ==========================================
 // WIN CELEBRATION SYSTEM
 // ==========================================
 
@@ -1214,6 +1331,17 @@ class Particle {
       this.gravity = 0;
       this.life = 1;
       this.decay = 0.03;
+    } else if (type === 'idle') {
+      // Subtle ambient sparkle - slow drift upward
+      this.vx = (Math.random() - 0.5) * 1;
+      this.vy = -Math.random() * 0.8 - 0.2;
+      this.size = Math.random() * 3 + 1;
+      this.color = Math.random() > 0.5 ? 'rgba(255, 215, 0, 0.6)' : 'rgba(138, 43, 226, 0.5)';
+      this.gravity = 0;
+      this.life = 1;
+      this.decay = 0.015;
+      this.twinkle = true;
+      this.twinklePhase = Math.random() * Math.PI * 2;
     }
   }
 
@@ -1273,6 +1401,20 @@ class Particle {
         ctx.lineTo(Math.cos(midAngle) * this.size * 0.3, Math.sin(midAngle) * this.size * 0.3);
       }
       ctx.closePath();
+      ctx.fill();
+    } else if (this.type === 'idle') {
+      // Draw subtle twinkling dot
+      if (this.twinkle) {
+        this.twinklePhase += 0.15;
+        ctx.globalAlpha = this.life * (0.5 + 0.5 * Math.sin(this.twinklePhase));
+      }
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+      ctx.fill();
+      // Add small glow
+      ctx.shadowColor = this.color;
+      ctx.shadowBlur = this.size * 2;
       ctx.fill();
     }
 
@@ -1346,6 +1488,63 @@ function startCoinRain(duration = 3000, intensity = 'medium') {
       clearInterval(rainInterval);
     }
   }, interval);
+}
+
+// ==========================================
+// IDLE AMBIENT EFFECTS
+// ==========================================
+
+let idleParticleInterval = null;
+let jackpotGlowActive = false;
+
+// Subtle ambient sparkles that float around when idle
+function startIdleAmbience() {
+  if (idleParticleInterval) return; // Already running
+
+  // Spawn subtle floating sparkles periodically
+  idleParticleInterval = setInterval(() => {
+    if (isSpinning) return; // Don't spawn during spin
+    if (!particleCanvas) return;
+
+    // Spawn 1-2 subtle sparkles near the reels area
+    const reelArea = document.querySelector('.slot-machine');
+    if (reelArea) {
+      const rect = reelArea.getBoundingClientRect();
+      const x = rect.left + Math.random() * rect.width;
+      const y = rect.top + Math.random() * rect.height;
+      particles.push(new Particle(x, y, 'idle'));
+    }
+
+    startParticleAnimation();
+  }, 800);
+
+  // Start jackpot glow pulsing
+  startJackpotGlow();
+}
+
+function stopIdleAmbience() {
+  if (idleParticleInterval) {
+    clearInterval(idleParticleInterval);
+    idleParticleInterval = null;
+  }
+  stopJackpotGlow();
+}
+
+// Pulsing glow effect on jackpot display
+function startJackpotGlow() {
+  const jackpotBox = document.querySelector('.info-box.jackpot');
+  if (jackpotBox && !jackpotGlowActive) {
+    jackpotBox.classList.add('glow-pulse');
+    jackpotGlowActive = true;
+  }
+}
+
+function stopJackpotGlow() {
+  const jackpotBox = document.querySelector('.info-box.jackpot');
+  if (jackpotBox) {
+    jackpotBox.classList.remove('glow-pulse');
+    jackpotGlowActive = false;
+  }
 }
 
 // Payout counter animation
@@ -1695,7 +1894,17 @@ let spinMessageInterval = null;
 function startContinuousSpin() {
   isSpinning = true;
   spinBtn.classList.add('spinning');
-  playSpinSound();
+
+  // Play lever pull sound at start
+  playSpinStartSound();
+
+  // Start the continuous clicking/whirring sound after a short delay
+  setTimeout(() => {
+    // Only start if we're still spinning (user might have cancelled quickly)
+    if (isSpinning) {
+      startSpinningSound();
+    }
+  }, 200);
 
   const reels = [
     document.getElementById('reel-0'),
@@ -1725,6 +1934,10 @@ function landReelsOnResult(results) {
     clearInterval(spinMessageInterval);
     spinMessageInterval = null;
   }
+
+  // Stop the continuous spinning sound
+  stopSpinningSound();
+
   showResult('🎯 Landing... 🎯', 'pending');
 
   console.log('Landing on results:', results, '→', results.map(r => SYMBOLS[r]).join(' '));
@@ -2184,6 +2397,9 @@ function resetSpinState() {
     spinMessageInterval = null;
   }
 
+  // Stop spinning sounds
+  stopSpinningSound();
+
   // Reset button state
   setSpinButtonDisabled(false);
   isSpinning = false;
@@ -2295,6 +2511,9 @@ function hideLoading() {
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize particle system for win celebrations
   initParticleSystem();
+
+  // Start ambient effects (subtle sparkles, jackpot glow)
+  startIdleAmbience();
 
   // Event listeners - must be inside DOMContentLoaded
   spinBtn.addEventListener('click', spin);
