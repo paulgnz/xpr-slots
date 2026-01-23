@@ -1210,9 +1210,9 @@ function playReelStopSound(reelIndex) {
   if (!soundEnabled) return;
 
   // Satisfying mechanical clunk when reel stops
-  // Gets more dramatic with each reel (building anticipation)
+  // Pitch rises with each reel - builds anticipation!
   const baseVolume = 0.15 + reelIndex * 0.05;
-  const basePitch = 150 - reelIndex * 20;
+  const basePitch = 120 + reelIndex * 30;
 
   // Main clunk
   playTone(basePitch, 0.12, 'square', baseVolume);
