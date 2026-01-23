@@ -1489,10 +1489,12 @@ async function connectWallet() {
         restoreSession: false
       },
       transportOptions: {
-        requestAccount: CONFIG.contractAccount
+        requestAccount: CONFIG.contractAccount,
+        requestStatus: true
       },
       selectorOptions: {
-        appName: CONFIG.appName
+        appName: CONFIG.appName,
+        enabledWalletTypes: ['webauth', 'proton']
       }
     });
 
@@ -2029,10 +2031,12 @@ document.addEventListener('DOMContentLoaded', () => {
       restoreSession: true
     },
     transportOptions: {
-      requestAccount: CONFIG.contractAccount
+      requestAccount: CONFIG.contractAccount,
+      requestStatus: true
     },
     selectorOptions: {
-      appName: CONFIG.appName
+      appName: CONFIG.appName,
+      enabledWalletTypes: ['webauth', 'proton']
     }
   })).then(result => {
     if (result.session) {
