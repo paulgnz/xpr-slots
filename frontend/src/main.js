@@ -1245,61 +1245,46 @@ function stopSpinningSound() {}
 function playReelStopSound(reelIndex) {
   if (!soundEnabled) return;
 
+  // Satisfying mechanical clunk when reel stops
+  // Pitch rises with each reel - builds anticipation!
+  const baseVolume = 0.15 + reelIndex * 0.05;
+  const basePitch = 120 + reelIndex * 30;
+
+  // Main clunk
+  playTone(basePitch, 0.12, 'square', baseVolume);
+  playTone(basePitch * 0.5, 0.15, 'triangle', baseVolume * 0.7);
+
+  // Impact transient
   const ctx = getAudioContext();
-  const now = ctx.currentTime;
+  const bufferSize = ctx.sampleRate * 0.05;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 3);
+  }
 
-  // Musical notes that sound pleasing together (G4, A4, B4)
-  const pitches = [392, 440, 494];
-  const pitch = pitches[reelIndex];
-  const volume = 0.18 + reelIndex * 0.04;
-
-  // Main tone with reverb
-  const osc = ctx.createOscillator();
-  const oscGain = ctx.createGain();
-  const delay = ctx.createDelay();
-  const delayGain = ctx.createGain();
+  const noise = ctx.createBufferSource();
   const filter = ctx.createBiquadFilter();
+  const gain = ctx.createGain();
 
-  osc.type = 'sine';
-  osc.frequency.value = pitch;
-
-  // Soft attack, natural decay
-  oscGain.gain.setValueAtTime(0, now);
-  oscGain.gain.linearRampToValueAtTime(volume, now + 0.01);
-  oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-
-  // Subtle reverb via delay
-  delay.delayTime.value = 0.08;
-  delayGain.gain.value = 0.3;
-
-  // Warm filter
+  noise.buffer = buffer;
   filter.type = 'lowpass';
-  filter.frequency.value = 2000;
+  filter.frequency.value = 800 + reelIndex * 200;
 
-  // Connect: osc -> gain -> filter -> destination
-  //                     -> delay -> delayGain -> destination (reverb tail)
-  osc.connect(oscGain);
-  oscGain.connect(filter);
-  filter.connect(ctx.destination);
-  filter.connect(delay);
-  delay.connect(delayGain);
-  delayGain.connect(ctx.destination);
+  noise.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  gain.gain.value = baseVolume * 0.5;
 
-  osc.start(now);
-  osc.stop(now + 0.5);
+  noise.start();
 
-  // Add subtle harmonic for richness
-  const harm = ctx.createOscillator();
-  const harmGain = ctx.createGain();
-  harm.type = 'triangle';
-  harm.frequency.value = pitch * 2;
-  harmGain.gain.setValueAtTime(0, now);
-  harmGain.gain.linearRampToValueAtTime(volume * 0.15, now + 0.01);
-  harmGain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-  harm.connect(harmGain);
-  harmGain.connect(filter);
-  harm.start(now);
-  harm.stop(now + 0.3);
+  // Resonant ring for last reel (most dramatic)
+  if (reelIndex === 2) {
+    setTimeout(() => {
+      playTone(400, 0.2, 'sine', 0.08);
+      playTone(600, 0.15, 'sine', 0.05);
+    }, 50);
+  }
 }
 
 // ==========================================
