@@ -1215,27 +1215,37 @@ function startSpinningSound() {
 
   // Create a smooth mechanical whirring sound
   spinningOscillator = ctx.createOscillator();
+  const osc2 = ctx.createOscillator();
   const filter = ctx.createBiquadFilter();
   spinningGain = ctx.createGain();
 
-  // Low rumbling tone
+  // Main spinning tone
   spinningOscillator.type = 'sawtooth';
-  spinningOscillator.frequency.value = 80;
+  spinningOscillator.frequency.value = 120;
 
-  // Bandpass filter for mechanical quality
-  filter.type = 'bandpass';
-  filter.frequency.value = 200;
-  filter.Q.value = 2;
+  // Higher harmonic for presence
+  osc2.type = 'triangle';
+  osc2.frequency.value = 240;
 
-  // Gentle volume
+  // Lowpass filter for smooth mechanical sound
+  filter.type = 'lowpass';
+  filter.frequency.value = 600;
+  filter.Q.value = 1;
+
+  // Audible volume
   spinningGain.gain.setValueAtTime(0, ctx.currentTime);
-  spinningGain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.2);
+  spinningGain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 0.15);
 
   spinningOscillator.connect(filter);
+  osc2.connect(filter);
   filter.connect(spinningGain);
   spinningGain.connect(ctx.destination);
 
   spinningOscillator.start();
+  osc2.start();
+
+  // Store osc2 for cleanup
+  spinningOscillator._osc2 = osc2;
 }
 
 function stopSpinningSound() {
@@ -1245,10 +1255,15 @@ function stopSpinningSound() {
     if (spinningGain) {
       spinningGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15);
     }
+    const osc2 = spinningOscillator._osc2;
     setTimeout(() => {
       try {
         spinningOscillator.stop();
         spinningOscillator.disconnect();
+        if (osc2) {
+          osc2.stop();
+          osc2.disconnect();
+        }
       } catch (e) {}
       spinningOscillator = null;
       spinningGain = null;
