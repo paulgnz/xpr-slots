@@ -1155,87 +1155,41 @@ function playCoinSound() {
 // SPIN SOUNDS
 // ==========================================
 
-let spinSoundInterval = null;
-
 function playSpinStartSound() {
   if (!soundEnabled) return;
-
   const ctx = getAudioContext();
-  const now = ctx.currentTime;
 
-  // Rising swoosh - exciting launch feel
-  const osc = ctx.createOscillator();
-  const oscGain = ctx.createGain();
+  // Simple whoosh sound
+  const bufferSize = ctx.sampleRate * 0.3;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+  }
+
+  const source = ctx.createBufferSource();
   const filter = ctx.createBiquadFilter();
-  const delay = ctx.createDelay();
-  const delayGain = ctx.createGain();
+  const gainNode = ctx.createGain();
 
-  osc.type = 'sine';
-  // Rising pitch from D4 to G5 (exciting upward sweep)
-  osc.frequency.setValueAtTime(294, now);
-  osc.frequency.exponentialRampToValueAtTime(784, now + 0.25);
+  source.buffer = buffer;
+  filter.type = 'bandpass';
+  filter.frequency.value = 800;
+  filter.Q.value = 1;
 
-  // Envelope: quick attack, smooth decay
-  oscGain.gain.setValueAtTime(0, now);
-  oscGain.gain.linearRampToValueAtTime(0.2, now + 0.03);
-  oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+  source.connect(filter);
+  filter.connect(gainNode);
+  gainNode.connect(ctx.destination);
 
-  // Warm filter that opens up
-  filter.type = 'lowpass';
-  filter.frequency.setValueAtTime(800, now);
-  filter.frequency.exponentialRampToValueAtTime(3000, now + 0.2);
+  gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
+  filter.frequency.exponentialRampToValueAtTime(2000, ctx.currentTime + 0.3);
 
-  // Reverb
-  delay.delayTime.value = 0.06;
-  delayGain.gain.value = 0.25;
+  source.start();
 
-  osc.connect(oscGain);
-  oscGain.connect(filter);
-  filter.connect(ctx.destination);
-  filter.connect(delay);
-  delay.connect(delayGain);
-  delayGain.connect(ctx.destination);
-
-  osc.start(now);
-  osc.stop(now + 0.5);
-
-  // Harmonic shimmer (octave + fifth above)
-  const harm1 = ctx.createOscillator();
-  const harm2 = ctx.createOscillator();
-  const harmGain = ctx.createGain();
-
-  harm1.type = 'sine';
-  harm1.frequency.setValueAtTime(588, now);
-  harm1.frequency.exponentialRampToValueAtTime(1568, now + 0.25);
-
-  harm2.type = 'triangle';
-  harm2.frequency.setValueAtTime(440, now);
-  harm2.frequency.exponentialRampToValueAtTime(1175, now + 0.25);
-
-  harmGain.gain.setValueAtTime(0, now);
-  harmGain.gain.linearRampToValueAtTime(0.08, now + 0.05);
-  harmGain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
-
-  harm1.connect(harmGain);
-  harm2.connect(harmGain);
-  harmGain.connect(filter);
-
-  harm1.start(now);
-  harm2.start(now);
-  harm1.stop(now + 0.4);
-  harm2.stop(now + 0.4);
-
-  // Soft percussive attack
-  const clickOsc = ctx.createOscillator();
-  const clickGain = ctx.createGain();
-  clickOsc.type = 'sine';
-  clickOsc.frequency.value = 880;
-  clickGain.gain.setValueAtTime(0.15, now);
-  clickGain.gain.exponentialRampToValueAtTime(0.01, now + 0.06);
-  clickOsc.connect(clickGain);
-  clickGain.connect(ctx.destination);
-  clickOsc.start(now);
-  clickOsc.stop(now + 0.08);
+  // Quick ascending tones
+  [440, 550, 660].forEach((freq, i) => {
+    setTimeout(() => playTone(freq, 0.1, 'square', 0.1), i * 50);
+  });
 }
 
 // Spinning sound removed - couldn't get it to sound good
@@ -1244,47 +1198,9 @@ function stopSpinningSound() {}
 
 function playReelStopSound(reelIndex) {
   if (!soundEnabled) return;
-
-  // Satisfying mechanical clunk when reel stops
-  // Gets more dramatic with each reel (building anticipation)
-  const baseVolume = 0.15 + reelIndex * 0.05;
-  const basePitch = 150 - reelIndex * 20;
-
-  // Main clunk
-  playTone(basePitch, 0.12, 'square', baseVolume);
-  playTone(basePitch * 0.5, 0.15, 'triangle', baseVolume * 0.7);
-
-  // Impact transient
-  const ctx = getAudioContext();
-  const bufferSize = ctx.sampleRate * 0.05;
-  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) {
-    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 3);
-  }
-
-  const noise = ctx.createBufferSource();
-  const filter = ctx.createBiquadFilter();
-  const gain = ctx.createGain();
-
-  noise.buffer = buffer;
-  filter.type = 'lowpass';
-  filter.frequency.value = 800 + reelIndex * 200;
-
-  noise.connect(filter);
-  filter.connect(gain);
-  gain.connect(ctx.destination);
-  gain.gain.value = baseVolume * 0.5;
-
-  noise.start();
-
-  // Resonant ring for last reel (most dramatic)
-  if (reelIndex === 2) {
-    setTimeout(() => {
-      playTone(400, 0.2, 'sine', 0.08);
-      playTone(600, 0.15, 'sine', 0.05);
-    }, 50);
-  }
+  // Simple mechanical click
+  playTone(200 + reelIndex * 50, 0.08, 'square', 0.15);
+  playTone(100, 0.05, 'sawtooth', 0.1);
 }
 
 // ==========================================
