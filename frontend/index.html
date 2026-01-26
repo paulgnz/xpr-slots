@@ -837,6 +837,57 @@
             color: #00ffaa;
         }
 
+        /* Jackpot Winner */
+        .jackpot-winner {
+            margin-top: 40px;
+            width: 100%;
+            max-width: 800px;
+            background: linear-gradient(145deg, rgba(255, 215, 0, 0.15), rgba(255, 150, 0, 0.1));
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+        }
+
+        .jackpot-winner.hidden {
+            display: none;
+        }
+
+        .jackpot-winner h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: #ffd700;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+        }
+
+        .jackpot-winner .winner-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .jackpot-winner .winner-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            color: #fff;
+        }
+
+        .jackpot-winner .winner-symbols {
+            font-size: 2rem;
+            letter-spacing: 5px;
+        }
+
+        .jackpot-winner .winner-amount {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
         /* Recent Spins */
         .recent-spins {
             margin-top: 40px;
@@ -1613,6 +1664,15 @@
                     <span>House Edge</span>
                     <span>5%</span>
                 </div>
+            </div>
+        </div>
+
+        <div class="jackpot-winner hidden" id="jackpot-winner">
+            <h2>🎉 JACKPOT WINNER 🎉</h2>
+            <div class="winner-info">
+                <span class="winner-symbols" id="winner-symbols">7️⃣7️⃣7️⃣</span>
+                <span class="winner-name" id="winner-name">---</span>
+                <span class="winner-amount" id="winner-amount">0 XPR</span>
             </div>
         </div>
 

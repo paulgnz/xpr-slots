@@ -2094,6 +2094,7 @@ function onWalletConnected() {
   updateBalance();
   updateContractStats();
   loadRecentSpins();
+  loadJackpotWinner();
 }
 
 async function updateBalance() {
@@ -2172,6 +2173,32 @@ async function loadRecentSpins() {
     }
   } catch (error) {
     console.error('Error loading recent spins:', error);
+  }
+}
+
+async function loadJackpotWinner() {
+  try {
+    // Fetch recent spins and find jackpot winner
+    const result = await rpc.get_table_rows({
+      code: CONFIG.contractAccount,
+      scope: CONFIG.contractAccount,
+      table: 'spinresults',
+      limit: 100,
+      reverse: true
+    });
+
+    const jackpotWin = result.rows.find(spin => spin.jackpotWon === 1);
+    const winnerSection = document.getElementById('jackpot-winner');
+
+    if (jackpotWin && winnerSection) {
+      document.getElementById('winner-symbols').textContent =
+        `${SYMBOLS[jackpotWin.reel1]} ${SYMBOLS[jackpotWin.reel2]} ${SYMBOLS[jackpotWin.reel3]}`;
+      document.getElementById('winner-name').textContent = jackpotWin.player;
+      document.getElementById('winner-amount').textContent = formatXPR(jackpotWin.payout);
+      winnerSection.classList.remove('hidden');
+    }
+  } catch (error) {
+    console.error('Error loading jackpot winner:', error);
   }
 }
 
@@ -2538,6 +2565,8 @@ document.addEventListener('DOMContentLoaded', () => {
   createSparkles();
   initBetSelector();
   updateContractStats();
+  loadRecentSpins();
+  loadJackpotWinner();
 
   // Try to restore previous session
   waitForSdk().then(() => ProtonWebSDK({
