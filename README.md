@@ -260,6 +260,15 @@ proton action xprslots cleanup '{"maxGames":10}' xprslots@owner
 
 ---
 
+## Support
+
+XPR Slots is run as a free, open-source demo by **protonnz**, a block producer on
+XPR Network. If you find it useful, consider **voting `protonnz` as a block
+producer** (in your WebAuth wallet → Vote) — it helps support work like this.
+[See the validator →](https://explorer.xprnetwork.org/account/protonnz)
+
+---
+
 ## Disclaimer
 
 This is a demonstration of blockchain-based gaming and **not a commercial or money-making venture** — the small (~6%) margin exists only to keep the contract solvent, and anyone can top up the jackpot or house balance to help sustain it. Users must be 21+ years old. Do not use in jurisdictions where online gaming is prohibited. The software is provided "AS IS" without warranty. The developers assume no responsibility for any losses.
