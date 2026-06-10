@@ -2181,6 +2181,66 @@ async function verifyContractCode() {
   }
 }
 
+// Show the most recent community donation (jackpot/house top-up) from on-chain
+// transfer history. Name + amount only; uses textContent so it can't inject HTML.
+async function loadLastDonation() {
+  const el = document.getElementById('last-donation');
+  if (!el) return;
+  try {
+    const url = `${CONFIG.endpoints[0]}/v2/history/get_actions?account=${CONFIG.contractAccount}` +
+      `&filter=${CONFIG.tokenContract}%3Atransfer&limit=100&sort=desc`;
+    const res = await fetch(url);
+    const data = await res.json();
+    for (const a of (data.actions || [])) {
+      const d = (a.act && a.act.data) || {};
+      const memo = (d.memo || '').trim().toLowerCase();
+      if (d.to === CONFIG.contractAccount && (memo === 'jackpot' || memo === 'deposit')) {
+        const where = memo === 'jackpot' ? 'jackpot' : 'house';
+        el.textContent = `💝 Last donation: ${d.from} gave ${d.quantity} to the ${where}`;
+        return;
+      }
+    }
+    el.textContent = 'Be the first to support the game 💜';
+  } catch (error) {
+    console.error('Error loading last donation:', error);
+    el.textContent = '';
+  }
+}
+
+// Donate to the jackpot pool ('jackpot') or house bankroll ('deposit').
+async function donate(target) {
+  if (!session) { connectWallet(); return; }
+  const input = document.getElementById('donate-amount');
+  const amount = parseFloat(input && input.value);
+  if (!(amount > 0)) { showResult('Enter a donation amount in XPR.', 'error'); return; }
+  const memo = target === 'jackpot' ? 'jackpot' : 'deposit';
+  const where = target === 'jackpot' ? 'jackpot' : 'house';
+  try {
+    showLoading();
+    await session.transact({
+      actions: [{
+        account: CONFIG.tokenContract,
+        name: 'transfer',
+        authorization: [session.auth],
+        data: {
+          from: session.auth.actor.toString(),
+          to: CONFIG.contractAccount,
+          quantity: `${amount.toFixed(4)} XPR`,
+          memo
+        }
+      }]
+    }, { broadcast: true });
+    hideLoading();
+    showResult(`Thank you! ${amount} XPR added to the ${where}. 💜`, 'win');
+    updateContractStats();
+    loadLastDonation();
+  } catch (error) {
+    hideLoading();
+    console.error('Donation error:', error);
+    showResult('Donation cancelled or failed.', 'error');
+  }
+}
+
 async function loadRecentSpins() {
   try {
     const result = await rpc.get_table_rows({
@@ -2598,6 +2658,12 @@ document.addEventListener('DOMContentLoaded', () => {
   verifyContractCode();
   loadRecentSpins();
   loadJackpotWinner();
+  loadLastDonation();
+
+  const donateJackpotBtn = document.getElementById('donate-jackpot');
+  if (donateJackpotBtn) donateJackpotBtn.addEventListener('click', () => donate('jackpot'));
+  const donateHouseBtn = document.getElementById('donate-house');
+  if (donateHouseBtn) donateHouseBtn.addEventListener('click', () => donate('house'));
 
   // Try to restore previous session
   waitForSdk().then(() => ProtonWebSDK({

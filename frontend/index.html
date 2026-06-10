@@ -884,6 +884,51 @@
             color: #00ffaa;
         }
 
+        /* Support / community funding */
+        .support-note {
+            text-align: center;
+            color: #bba8d8;
+            font-size: 0.85rem;
+            line-height: 1.45;
+            margin: 0 auto 12px;
+            max-width: 560px;
+        }
+
+        .last-donation {
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            color: #00ffaa;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+            min-height: 1.2em;
+        }
+
+        .donate-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #donate-amount {
+            width: 110px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 2px solid rgba(138, 43, 226, 0.4);
+            background: linear-gradient(145deg, rgba(40, 20, 80, 0.8), rgba(20, 10, 40, 0.9));
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            text-align: right;
+        }
+
+        .donate-unit {
+            color: #aaa;
+            font-size: 0.85rem;
+            margin-right: 6px;
+        }
+
         /* Jackpot Winner */
         .jackpot-winner {
             margin-top: 40px;
@@ -1711,6 +1756,18 @@
                     <span>House Edge</span>
                     <span>~6%</span>
                 </div>
+            </div>
+        </div>
+
+        <div class="stats-section support-section">
+            <h2>SUPPORT THE GAME</h2>
+            <p class="support-note">A non-profit demonstration, sustained by the community. Anyone can top up the jackpot or the house bankroll to help keep it running.</p>
+            <div class="last-donation" id="last-donation">&nbsp;</div>
+            <div class="donate-controls">
+                <input type="number" id="donate-amount" min="1" step="1" value="100" aria-label="Donation amount in XPR">
+                <span class="donate-unit">XPR</span>
+                <button class="bet-btn donate-btn" id="donate-jackpot">🎰 Fund Jackpot</button>
+                <button class="bet-btn donate-btn" id="donate-house">🏦 Fund House</button>
             </div>
         </div>
 
