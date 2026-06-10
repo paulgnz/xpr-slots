@@ -2152,6 +2152,35 @@ async function updateContractStats() {
   }
 }
 
+// On-chain code hash this frontend build was published against. Lets the
+// Provably Fair panel show whether the live contract still matches this build.
+const EXPECTED_CODE_HASH = 'ee63ad274e4844d9b4fb99319476ae13a599a4b7f9c2fba2e7238dcd537d17fe';
+
+async function verifyContractCode() {
+  const el = document.getElementById('contract-code-hash');
+  if (!el) return;
+  try {
+    const res = await fetch(`${CONFIG.endpoints[0]}/v1/chain/get_code_hash`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ account_name: CONFIG.contractAccount })
+    });
+    const data = await res.json();
+    const hash = (data.code_hash || '').toLowerCase();
+    if (!hash) { el.textContent = 'unavailable'; return; }
+    const short = `${hash.slice(0, 8)}…${hash.slice(-6)}`;
+    const matches = hash === EXPECTED_CODE_HASH;
+    const url = `https://explorer.xprnetwork.org/account/${CONFIG.contractAccount}`;
+    el.innerHTML = `<a href="${url}" target="_blank">${short}</a> ${matches ? '✓' : '⚠'}`;
+    el.title = matches
+      ? `Verified: live on-chain code hash matches this build\n${hash}`
+      : `Note: live on-chain code hash differs from this build's expected hash\n${hash}`;
+  } catch (error) {
+    console.error('Error fetching code hash:', error);
+    el.textContent = 'unavailable';
+  }
+}
+
 async function loadRecentSpins() {
   try {
     const result = await rpc.get_table_rows({
@@ -2566,6 +2595,7 @@ document.addEventListener('DOMContentLoaded', () => {
   createSparkles();
   initBetSelector();
   updateContractStats();
+  verifyContractCode();
   loadRecentSpins();
   loadJackpotWinner();
 

@@ -183,8 +183,8 @@
             background: linear-gradient(90deg, transparent, #ffd700, #ff6b00, #ffd700, transparent);
             transform: translateY(-50%);
             z-index: 20;
-            box-shadow: 0 0 20px #ffd700, 0 0 40px #ff6b00;
-            opacity: 0.8;
+            box-shadow: 0 0 24px #ffd700, 0 0 48px #ff6b00, 0 0 4px rgba(255, 255, 255, 0.9);
+            opacity: 0.92;
         }
 
         .reel {
@@ -223,9 +223,11 @@
             border-radius: 10px;
             margin: 5px 0;
             box-shadow:
-                inset 0 2px 10px rgba(255, 255, 255, 0.1),
-                inset 0 -2px 10px rgba(0, 0, 0, 0.3);
+                inset 0 2px 12px rgba(255, 255, 255, 0.12),
+                inset 0 -3px 14px rgba(0, 0, 0, 0.45);
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            /* Grounding shadow lifts the emoji glyphs off the dark cell for legibility */
+            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
         }
 
         .symbol.highlight {
@@ -299,6 +301,27 @@
             box-shadow:
                 0 0 30px rgba(255, 215, 0, 0.3),
                 inset 0 0 20px rgba(0, 0, 0, 0.3);
+            /* Gentle always-on shimmer to draw the eye to the pool */
+            animation: jackpotIdlePulse 3.5s ease-in-out infinite;
+        }
+
+        @keyframes jackpotIdlePulse {
+            0%, 100% {
+                box-shadow:
+                    0 0 24px rgba(255, 215, 0, 0.25),
+                    inset 0 0 20px rgba(0, 0, 0, 0.3);
+            }
+            50% {
+                box-shadow:
+                    0 0 38px rgba(255, 215, 0, 0.45),
+                    0 0 60px rgba(255, 215, 0, 0.12),
+                    inset 0 0 20px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .info-box.jackpot,
+            .info-box.jackpot.glow-pulse { animation: none; }
         }
 
         .info-box.jackpot .value {
@@ -350,6 +373,22 @@
             color: #fff;
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4);
+        }
+
+        .bet-btn:active {
+            transform: translateY(0) scale(0.97);
+        }
+
+        .bet-btn:focus-visible,
+        #spin-btn:focus-visible,
+        .spin-btn-mobile:focus-visible {
+            outline: 2px solid rgba(255, 215, 0, 0.85);
+            outline-offset: 3px;
+        }
+
+        #spin-btn:active:not(:disabled),
+        .spin-btn-mobile:active:not(:disabled) {
+            transform: translateY(-1px) scale(1.02);
         }
 
         .bet-btn.active {
@@ -1685,10 +1724,25 @@
 
         <div class="odds-section">
             <h2>PROVABLY FAIR</h2>
-            <p class="odds-intro">All values below are from the <a href="https://explorer.xprnetwork.org/account/xprslots" target="_blank">xprslots contract</a>. Results use <a href="https://explorer.xprnetwork.org/account/rng" target="_blank">XPR Network's RNG oracle</a> for verifiable randomness.</p>
+            <p class="odds-intro">Live pool &amp; totals are read straight from the <a href="https://explorer.xprnetwork.org/account/xprslots" target="_blank">xprslots contract</a>. Randomness comes from <a href="https://explorer.xprnetwork.org/account/rng" target="_blank">XPR Network's RNG oracle</a>. The fixed rules below are constants in the deployed contract code &mdash; verify them against the on-chain code hash shown here.</p>
             <div class="odds-table">
                 <div class="odds-category">
-                    <h4>Symbol Weights (Per Reel)</h4>
+                    <h4>Contract Verification</h4>
+                    <div class="odds-row">
+                        <span>Contract</span>
+                        <span class="odds-value"><a href="https://explorer.xprnetwork.org/account/xprslots" target="_blank">xprslots</a></span>
+                    </div>
+                    <div class="odds-row">
+                        <span>Live Code Hash</span>
+                        <span class="odds-value" id="contract-code-hash" title="Fetched live from the chain via get_code_hash">checking&hellip;</span>
+                    </div>
+                    <div class="odds-row">
+                        <span>RNG Oracle</span>
+                        <span class="odds-value"><a href="https://explorer.xprnetwork.org/account/rng" target="_blank">rng</a></span>
+                    </div>
+                </div>
+                <div class="odds-category">
+                    <h4>Symbol Weights (Per Reel) &mdash; from deployed code</h4>
                     <div class="odds-row">
                         <span>🍋 Lemon</span>
                         <span class="odds-value">40 / 125</span>
@@ -1711,7 +1765,7 @@
                     </div>
                 </div>
                 <div class="odds-category">
-                    <h4>Contract Parameters</h4>
+                    <h4>Contract Parameters &mdash; from deployed code</h4>
                     <div class="odds-row">
                         <span>HOUSE_EDGE_PERCENT</span>
                         <span class="odds-value">5</span>
