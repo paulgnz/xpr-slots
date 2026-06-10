@@ -28,18 +28,19 @@ class TokenAccount extends Table {
 const XPR_SYMBOL: Symbol = new Symbol("XPR", 4);
 const MIN_BET: u64 = 10000; // 1.0000 XPR minimum bet
 const MAX_BET: u64 = 10000000; // 1,000.0000 XPR maximum bet
-const MIN_JACKPOT: u64 = 100000000; // 10,000.0000 XPR minimum jackpot
 const MAX_PAYOUT: u64 = 10000000000; // 1,000,000.0000 XPR maximum payout
 const HOUSE_EDGE_PERCENT: u8 = 5; // 5% house edge
 const TOKEN_CONTRACT: Name = Name.fromString("eosio.token");
 const MAX_RESULTS_STORED: u64 = 1000; // Maximum spin results to keep
 
 // Payout multipliers (in basis points, 10000 = 1x)
+// Rebalanced for ~94% total RTP (88% base + ~6% jackpot recycling).
+// Multipliers scale with symbol rarity: bar(16%) > bell(20%) > cherry(24%) > lemon(32%).
+const PAYOUT_BAR: u64 = 240000;     // 24x for three bars (rarest non-seven)
+const PAYOUT_BELL: u64 = 120000;    // 12x for three bells
 const PAYOUT_CHERRY: u64 = 50000;   // 5x for three cherries
-const PAYOUT_BAR: u64 = 30000;      // 3x for three bars
-const PAYOUT_BELL: u64 = 20000;     // 2x for three bells
-const PAYOUT_LEMON: u64 = 15000;    // 1.5x for three lemons
-const PAYOUT_ANY_TWO: u64 = 5000;   // 0.5x for any two matching
+const PAYOUT_LEMON: u64 = 30000;    // 3x for three lemons
+const PAYOUT_ANY_TWO: u64 = 10000;  // 1x (push) for any two matching
 
 // Slot symbols (0-4)
 const SYMBOL_LEMON: u8 = 0;
@@ -268,7 +269,7 @@ export class XprSlots extends Contract {
 
     // Calculate distribution based on bet amount
     const houseEdge = (betAmount * <u64>HOUSE_EDGE_PERCENT) / 100; // 5% house edge
-    const jackpotContribution = betAmount / 10; // 10% to jackpot pool
+    const jackpotContribution = (betAmount * 6) / 100; // 6% to jackpot pool
 
     // Get next game ID
     const gameId = config.nextGameId;
@@ -353,11 +354,10 @@ export class XprSlots extends Contract {
         jackpotWon = true;
         const config = this.configSingleton.get();
 
-        // Calculate jackpot payout - minimum of pool, MIN_JACKPOT guarantee, available balance, and MAX_PAYOUT
+        // Jackpot pays the accumulated pool only (no house subsidy), capped at
+        // MAX_PAYOUT and the contract's actual balance. The pool is seeded/topped
+        // up by the owner via the "jackpot" memo and grows 6% of every bet.
         payout = config.jackpotPool;
-        if (payout < MIN_JACKPOT) {
-          payout = MIN_JACKPOT;
-        }
         if (payout > MAX_PAYOUT) {
           payout = MAX_PAYOUT;
         }

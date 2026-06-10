@@ -9236,8 +9236,11 @@
      (local.get $3)
     )
     (i64.div_u
-     (local.get $4)
-     (i64.const 10)
+     (i64.mul
+      (local.get $4)
+      (i64.const 6)
+     )
+     (i64.const 100)
     )
    )
   )
@@ -11784,25 +11787,14 @@
             (block (result i64)
              (if
               (i64.gt_u
-               (block (result i64)
-                (if
-                 (i64.lt_u
-                  (local.tee $1
-                   (i64.load offset=32
-                    (call $~lib/proton-tsc/modules/store/singleton/Singleton<assembly/index/Config>#get
-                     (i32.load offset=12
-                      (local.get $0)
-                     )
-                    )
-                   )
+               (local.tee $1
+                (i64.load offset=32
+                 (call $~lib/proton-tsc/modules/store/singleton/Singleton<assembly/index/Config>#get
+                  (i32.load offset=12
+                   (local.get $0)
                   )
-                  (i64.const 100000000)
-                 )
-                 (local.set $1
-                  (i64.const 100000000)
                  )
                 )
-                (local.get $1)
                )
                (i64.const 10000000000)
               )
@@ -11842,7 +11834,7 @@
              (i64.load offset=16
               (local.get $4)
              )
-             (i64.const 30000)
+             (i64.const 240000)
             )
             (i64.const 10000)
            )
@@ -11856,7 +11848,7 @@
               (i64.load offset=16
                (local.get $4)
               )
-              (i64.const 20000)
+              (i64.const 120000)
              )
              (i64.const 10000)
             )
@@ -11868,7 +11860,7 @@
                (i64.load offset=16
                 (local.get $4)
                )
-               (i64.const 15000)
+               (i64.const 30000)
               )
               (i64.const 10000)
              )
@@ -11901,7 +11893,7 @@
            (i64.load offset=16
             (local.get $4)
            )
-           (i64.const 5000)
+           (i64.const 10000)
           )
           (i64.const 10000)
          )

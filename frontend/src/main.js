@@ -1527,7 +1527,7 @@ function showPayoutCounter(amount, tier = 'normal') {
 // TIERED WIN CELEBRATIONS
 // ==========================================
 
-// Bronze: Two match (0.5x) - subtle
+// Tier 1 (subtle): any-2 match (1x money back)
 function celebrateTwoMatch(payout) {
   const slotMachine = document.querySelector('.slot-machine');
   const rect = slotMachine?.getBoundingClientRect() || { left: window.innerWidth / 2, top: window.innerHeight / 3 };
@@ -1538,7 +1538,7 @@ function celebrateTwoMatch(payout) {
   showPayoutCounter(payout, 'normal');
 }
 
-// Silver: Lemons (1.5x) - nice
+// Tier 2 (nice): lemon 3-of-a-kind (3x)
 function celebrateLemons(payout) {
   const slotMachine = document.querySelector('.slot-machine');
   const rect = slotMachine?.getBoundingClientRect() || { left: window.innerWidth / 2, top: window.innerHeight / 3 };
@@ -1550,7 +1550,7 @@ function celebrateLemons(payout) {
   showPayoutCounter(payout, 'normal');
 }
 
-// Silver+: Bells (2x) - good
+// Tier 3 (great): cherry 3-of-a-kind (5x)
 function celebrateBells(payout) {
   const slotMachine = document.querySelector('.slot-machine');
   const rect = slotMachine?.getBoundingClientRect() || { left: window.innerWidth / 2, top: window.innerHeight / 3 };
@@ -1563,7 +1563,7 @@ function celebrateBells(payout) {
   showPayoutCounter(payout, 'normal');
 }
 
-// Gold: Bars (3x) - great
+// Tier 4 (huge): bell 3-of-a-kind (12x)
 function celebrateBars(payout) {
   const slotMachine = document.querySelector('.slot-machine');
   const rect = slotMachine?.getBoundingClientRect() || { left: window.innerWidth / 2, top: window.innerHeight / 3 };
@@ -1576,7 +1576,7 @@ function celebrateBars(payout) {
   showPayoutCounter(payout, 'normal');
 }
 
-// Platinum: Cherries (5x) - EPIC!
+// Tier 5 (ultimate): bar 3-of-a-kind (24x), biggest non-jackpot
 function celebrateCherries(payout) {
   const slotMachine = document.querySelector('.slot-machine');
   const rect = slotMachine?.getBoundingClientRect() || { left: window.innerWidth / 2, top: window.innerHeight / 3 };
@@ -2291,20 +2291,21 @@ async function spin() {
           const isThreeOfAKind = (r1 === r2 && r2 === r3);
           if (isThreeOfAKind) {
             // Symbol indices: 0=Lemon, 1=Cherry, 2=Bell, 3=Bar, 4=Seven
-            if (r1 === 1) {
-              // Cherry - 5x - EPIC!
-              playThreeCherriesSound();
-              celebrateCherries(spinResult.payout);
-            } else if (r1 === 3) {
-              // Bar - 3x - Great
+            // Celebration intensity tracks payout magnitude: bar(24x) > bell(12x) > cherry(5x) > lemon(3x)
+            if (r1 === 3) {
+              // Bar - 24x - biggest non-jackpot, ULTIMATE celebration
               playThreeBarsSound();
-              celebrateBars(spinResult.payout);
+              celebrateCherries(spinResult.payout);
             } else if (r1 === 2) {
-              // Bell - 2x - Good
+              // Bell - 12x - huge
               playThreeBellsSound();
+              celebrateBars(spinResult.payout);
+            } else if (r1 === 1) {
+              // Cherry - 5x - great
+              playThreeCherriesSound();
               celebrateBells(spinResult.payout);
             } else if (r1 === 0) {
-              // Lemon - 1.5x - Nice
+              // Lemon - 3x - nice
               playThreeLemonsSound();
               celebrateLemons(spinResult.payout);
             } else {
@@ -2312,7 +2313,7 @@ async function spin() {
               celebrateLemons(spinResult.payout);
             }
           } else {
-            // Two matching - 0.5x - Subtle
+            // Two matching - 1x (money back) - subtle
             playTwoMatchSound();
             celebrateTwoMatch(spinResult.payout);
           }
