@@ -5,7 +5,7 @@ Provably fair blockchain slot machine on XPR Network.
 **Live:** https://xprslots.com
 **Contract:** `xprslots` (mainnet)
 **Owner:** `protonnz`
-**GitHub:** https://github.com/paulgnz/xpr-slots (private)
+**GitHub:** https://github.com/paulgnz/xpr-slots
 
 ## Architecture
 
@@ -24,14 +24,17 @@ Provably fair blockchain slot machine on XPR Network.
 
 ## Payouts
 
+Tuned for **~94% RTP** (≈6% house edge). Multipliers scale with symbol rarity,
+and a matching pair returns your stake (push):
+
 | Combination | Payout |
 |-------------|--------|
-| 7️⃣ 7️⃣ 7️⃣ | Jackpot (min 10,000 XPR) |
+| 7️⃣ 7️⃣ 7️⃣ | Jackpot (entire pool) |
+| 📊 📊 📊 | 24x bet |
+| 🔔 🔔 🔔 | 12x bet |
 | 🍒 🍒 🍒 | 5x bet |
-| 📊 📊 📊 | 3x bet |
-| 🔔 🔔 🔔 | 2x bet |
-| 🍋 🍋 🍋 | 1.5x bet |
-| Any 2 match | 0.5x bet |
+| 🍋 🍋 🍋 | 3x bet |
+| Any 2 match | 1x bet (money back) |
 
 ### Symbol Mapping
 | Index | Symbol |
@@ -50,9 +53,9 @@ Provably fair blockchain slot machine on XPR Network.
 ## Bet Distribution
 
 Every spin distributes the bet as follows:
-- **5%** → House balance (profit)
-- **10%** → Jackpot pool
-- **85%** → Available for payouts
+- **5%** → House balance (profit accounting)
+- **6%** → Jackpot pool
+- **89%** → Available for payouts
 
 ## Jackpot
 
@@ -63,13 +66,12 @@ Every spin distributes the bet as follows:
 - Three Sevens = (10/125)³ = **0.051%** or ~**1 in 1,953 spins**
 
 **Payout:**
-- Winner receives the entire `jackpotPool`
-- **Minimum guaranteed: 10,000 XPR** (even if pool is smaller)
+- Winner receives the entire `jackpotPool` (no house subsidy — fully funded by play)
 - Capped at MAX_PAYOUT (1,000,000 XPR) and available contract balance
 
 **Pool growth:**
-- 10% of every bet automatically goes to jackpot pool
-- Owner can top up via transfer with memo `jackpot`
+- 6% of every bet automatically goes to jackpot pool
+- Owner can seed/top up via transfer with memo `jackpot`
 
 ## Transfer Memos
 
@@ -105,17 +107,10 @@ proton account xprslots -t | grep XPR
 
 **Rule:** `actual balance` must be >= `jackpotPool` (at minimum)
 
-### RAM Purchase Incident (2026-01-22)
-
-Bought 2MB RAM for the contract which cost ~4,660 XPR from the token balance. This created a mismatch because the internal accounting wasn't updated:
-
-- Internal accounting: ~100,963 XPR
-- Actual balance: ~98,485 XPR
-- **Shortfall:** ~2,477 XPR
-
-**Resolution:** Deposited 2,500 XPR with memo "deposit" to cover the shortfall.
-
-**Lesson:** When buying RAM or doing anything that spends XPR from the contract account externally, you must deposit equivalent XPR to maintain accounting integrity.
+**Note:** Anything that spends XPR from the contract account externally (e.g.
+buying RAM) lowers the actual token balance without updating internal
+accounting. Deposit an equivalent amount with memo `deposit` afterward to keep
+the two in sync.
 
 ---
 
@@ -137,7 +132,7 @@ All require `xprslots@owner` or `protonnz@active` authorization:
 - Oracle-based RNG (can't manipulate randomness)
 - Owner-only admin functions with `requireAuth`
 - MAX_PAYOUT cap (1,000,000 XPR)
-- Minimum jackpot threshold (10,000 XPR)
+- Jackpot pays only the funded pool, capped at actual balance (never insolvent)
 - Pending spin tracking (prevents replay attacks)
 - Balance checks before payouts
 - Contract can only spend via defined actions
@@ -228,6 +223,14 @@ proton action xprslots cleanup '{"maxGames":10}' xprslots@owner
 - **XPR Network Docs:** https://docs.xprnetwork.org
 
 ## Changelog
+
+### 2026-06-10 - Payout rebalance (~40% → ~94% RTP)
+- Any-2 match 0.5x → 1x (push); lemon 1.5x → 3x; bell 2x → 12x; bar 3x → 24x; cherry stays 5x
+- Multipliers now scale with symbol rarity
+- Jackpot pays the funded pool only (removed the 10,000 XPR house-subsidized floor)
+- Jackpot contribution 10% → 6% of each bet
+- Owner topped up 25,000 XPR (10k jackpot seed + 15k bankroll)
+- Frontend: paytable + Provably Fair panel updated; added live on-chain code-hash verification
 
 ### 2026-01-22 - Initial Mainnet Launch
 - Deployed to `xprslots` on mainnet
