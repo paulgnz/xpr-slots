@@ -1982,8 +1982,14 @@ async function connectWallet() {
         requestStatus: true
       },
       selectorOptions: {
-        appName: CONFIG.appName,
         enabledWalletTypes: ['webauth', 'proton']
+      },
+      uiOptions: {
+        appInfo: {
+          name: CONFIG.appName,
+          logo: 'https://xprslots.com/apple-touch-icon.png',
+          logoRounded: true
+        }
       }
     });
 
@@ -2677,8 +2683,14 @@ document.addEventListener('DOMContentLoaded', () => {
       requestStatus: true
     },
     selectorOptions: {
-      appName: CONFIG.appName,
       enabledWalletTypes: ['webauth', 'proton']
+    },
+    uiOptions: {
+      appInfo: {
+        name: CONFIG.appName,
+        logo: 'https://xprslots.com/apple-touch-icon.png',
+        logoRounded: true
+      }
     }
   })).then(result => {
     if (result.session) {
