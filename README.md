@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="github-social-preview-1280.jpg" alt="XPR Slots — provably fair, open source, ~94% RTP on XPR Network" width="100%">
+</p>
+
 # XPR Slots
 
 Provably fair blockchain slot machine on XPR Network.
