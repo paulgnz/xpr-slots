@@ -2,6 +2,11 @@
 
 Provably fair blockchain slot machine on XPR Network.
 
+> Open-source **demonstration** project — **not a money-making endeavor**. Created by
+> Paul Grey (`protonnz`); occasionally topped up / maintained for demonstration
+> purposes, and community-sustainable: anyone can top up the jackpot or house
+> balance (see [Transfer Memos](#transfer-memos)).
+
 **Live:** https://xprslots.com
 **Contract:** `xprslots` (mainnet)
 **Owner:** `protonnz`
@@ -253,7 +258,7 @@ proton action xprslots cleanup '{"maxGames":10}' xprslots@owner
 
 ## Disclaimer
 
-This is a demonstration of blockchain-based gaming. Users must be 21+ years old. Do not use in jurisdictions where online gaming is prohibited. The software is provided "AS IS" without warranty. The developers assume no responsibility for any losses.
+This is a demonstration of blockchain-based gaming and **not a commercial or money-making venture** — the small (~6%) margin exists only to keep the contract solvent, and anyone can top up the jackpot or house balance to help sustain it. Users must be 21+ years old. Do not use in jurisdictions where online gaming is prohibited. The software is provided "AS IS" without warranty. The developers assume no responsibility for any losses.
 
 ## License
 
