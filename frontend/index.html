@@ -37,9 +37,17 @@
             box-sizing: border-box;
         }
 
+        /* Dark page canvas so fast/under-load scrolling never flashes white
+           behind the body gradient (html defaults to white otherwise). */
+        html {
+            background-color: #0d0015;
+            overscroll-behavior: none;
+        }
+
         body {
             font-family: 'Rajdhani', sans-serif;
-            background: radial-gradient(ellipse at center, #1a0a2e 0%, #0d0015 50%, #000 100%);
+            background-color: #0d0015;
+            background-image: radial-gradient(ellipse at center, #1a0a2e 0%, #0d0015 50%, #000 100%);
             min-height: 100vh;
             color: white;
             overflow-x: hidden;
@@ -876,6 +884,51 @@
             color: #00ffaa;
         }
 
+        /* Support / community funding */
+        .support-note {
+            text-align: center;
+            color: #bba8d8;
+            font-size: 0.85rem;
+            line-height: 1.45;
+            margin: 0 auto 12px;
+            max-width: 560px;
+        }
+
+        .last-donation {
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            color: #00ffaa;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+            min-height: 1.2em;
+        }
+
+        .donate-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #donate-amount {
+            width: 110px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 2px solid rgba(138, 43, 226, 0.4);
+            background: linear-gradient(145deg, rgba(40, 20, 80, 0.8), rgba(20, 10, 40, 0.9));
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            text-align: right;
+        }
+
+        .donate-unit {
+            color: #aaa;
+            font-size: 0.85rem;
+            margin-right: 6px;
+        }
+
         /* Jackpot Winner */
         .jackpot-winner {
             margin-top: 40px;
@@ -1706,6 +1759,18 @@
             </div>
         </div>
 
+        <div class="stats-section support-section">
+            <h2>SUPPORT THE GAME</h2>
+            <p class="support-note">A non-profit demonstration, sustained by the community. Anyone can top up the jackpot or the house bankroll to help keep it running.</p>
+            <div class="last-donation" id="last-donation">&nbsp;</div>
+            <div class="donate-controls">
+                <input type="number" id="donate-amount" min="1" step="1" value="100" aria-label="Donation amount in XPR">
+                <span class="donate-unit">XPR</span>
+                <button class="bet-btn donate-btn" id="donate-jackpot">🎰 Fund Jackpot</button>
+                <button class="bet-btn donate-btn" id="donate-house">🏦 Fund House</button>
+            </div>
+        </div>
+
         <div class="jackpot-winner hidden" id="jackpot-winner">
             <h2>🎉 JACKPOT WINNER 🎉</h2>
             <div class="winner-info">
@@ -1739,6 +1804,10 @@
                     <div class="odds-row">
                         <span>RNG Oracle</span>
                         <span class="odds-value"><a href="https://explorer.xprnetwork.org/account/rng" target="_blank">rng</a></span>
+                    </div>
+                    <div class="odds-row">
+                        <span>Source (MIT)</span>
+                        <span class="odds-value"><a href="https://github.com/paulgnz/xpr-slots" target="_blank">GitHub</a></span>
                     </div>
                 </div>
                 <div class="odds-category">
@@ -1809,8 +1878,9 @@
         </div>
 
         <footer>
-            <p>Built on <a href="https://xprnetwork.org" target="_blank">XPR Network</a></p>
+            <p>Built on <a href="https://xprnetwork.org" target="_blank">XPR Network</a> &middot; <a href="https://github.com/paulgnz/xpr-slots" target="_blank">Open source (MIT)</a></p>
             <p>Contract: <code id="contract-address">xprslots</code></p>
+            <p>An open-source <strong>demonstration</strong> &mdash; not a money-making endeavor. Created by Paul Grey (protonnz); occasionally topped up / maintained for demonstration purposes, and anyone can help keep it running via the jackpot &amp; house deposits.</p>
         </footer>
     </div>
 
