@@ -2262,7 +2262,7 @@ async function loadRecentSpins() {
         <div class="spin-item ${spin.payout > 0 ? 'win' : ''}">
           <span class="symbols">${SYMBOLS[spin.reel1]} ${SYMBOLS[spin.reel2]} ${SYMBOLS[spin.reel3]}</span>
           <span>${spin.player}</span>
-          <span class="payout-amount ${spin.payout > 0 ? '' : 'loss'}">${spin.payout > 0 ? '+' + formatXPR(spin.payout) : 'No win'}</span>
+          <span class="payout-amount ${spin.payout > 0 ? '' : 'loss'}">${formatXPR(spin.betAmount).replace(' XPR', '')} &rarr; ${spin.payout > 0 ? '+' + formatXPR(spin.payout) : '0'}</span>
         </div>
       `).join('');
     }
